@@ -1,0 +1,3161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>NCAA School Find Game</title>
+<style>
+:root {
+	--school-primary: #333;
+	--school-secondary: #666;
+	--school-accent: #0066cc;
+	--success-color: #28a745;
+	--error-color: #dc3545;
+	--warning-color: #ffc107;
+	--neutral-color: #6c757d;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	background-color: #f5f5f5;
+	/* Body text is always black for accessibility - school colors used for accents only */
+	color: #222;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Screen Containers */
+.screen-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	min-height: 0;
+}
+
+/* Setup Screen */
+#setup-screen {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.setup-card {
+	background: white;
+	border-radius: 12px;
+	padding: 40px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+	max-width: 400px;
+	text-align: center;
+}
+
+.setup-card h1 {
+	margin: 0 0 10px 0;
+	font-size: 32px;
+	color: #222;
+}
+
+.setup-card .subtitle {
+	margin: 0 0 30px 0;
+	font-size: 16px;
+	color: #555;
+}
+
+.conference-selector {
+	margin: 30px 0;
+	text-align: left;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+}
+
+.conference-selector label {
+	display: block;
+	margin: 10px 0;
+	cursor: pointer;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+}
+
+.conference-selector input[type="checkbox"] {
+	margin-right: 10px;
+	cursor: pointer;
+	width: 18px;
+	height: 18px;
+}
+
+/* Button Styles */
+.button {
+	padding: 12px 30px;
+	border: none;
+	border-radius: 6px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.button-primary {
+	background-color: var(--school-accent);
+	color: white;
+	width: 100%;
+	margin-top: 10px;
+}
+
+.button-primary:hover {
+	background-color: #0052a3;
+	box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+.button-primary:active {
+	transform: scale(0.98);
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Game Screen Layout */
+#game-screen {
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	background-color: #e8e8e8;
+	padding: 0;
+}
+
+/* Seterra-style compact top bar */
+.game-topbar {
+	background: #3c4257;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 16px;
+	font-size: 15px;
+	flex-shrink: 0;
+}
+
+.topbar-progress {
+	font-weight: 600;
+	min-width: 100px;
+}
+
+.topbar-prompt {
+	font-size: 16px;
+}
+
+.topbar-school-name {
+	font-weight: 700;
+	background: #222;
+	color: #fff;
+	padding: 4px 14px;
+	border-radius: 4px;
+	margin-left: 6px;
+	display: inline-block;
+}
+
+.topbar-timer {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	min-width: 60px;
+	text-align: right;
+}
+
+/* Game body: sidebar + map side by side */
+.game-body {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* School list sidebar */
+.sidebar {
+	width: 200px;
+	flex-shrink: 0;
+	background: #fff;
+	border-right: 1px solid #ddd;
+	overflow-y: auto;
+	padding: 8px 0;
+}
+
+#remaining-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#remaining-list li {
+	padding: 4px 12px;
+	font-size: 13px;
+	color: #444;
+	cursor: default;
+	border-left: 3px solid transparent;
+	transition: background-color 0.15s ease;
+}
+
+#remaining-list li.sidebar-current {
+	font-weight: 700;
+	background-color: #e8f0fe;
+	border-left-color: #0066cc;
+	color: #0066cc;
+}
+
+#remaining-list li.sidebar-answered {
+	text-decoration: line-through;
+	color: #999;
+}
+
+#remaining-list li.sidebar-answered .sidebar-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+/* Map fills remaining space */
+.game-map-wrap {
+	flex: 1;
+	position: relative;
+	overflow: hidden;
+	min-height: 0;
+}
+
+#game-map {
+	width: 100%;
+	height: 100%;
+	background: #d4dae0;
+}
+
+/* SVG Map Styles */
+#states path {
+	fill: #b8c5b9;
+	stroke: #e0e8e0;
+	stroke-width: 0.8;
+	stroke-linejoin: round;
+}
+
+/* School dots - three states: unanswered (gray), answered (school color), active feedback */
+.school-dot-group {
+	cursor: pointer;
+}
+
+.school-dot-group .hit-area {
+	fill: transparent;
+}
+
+.school-dot-group .visible-dot {
+	transition: r 0.15s ease, stroke-width 0.15s ease, stroke 0.15s ease;
+	stroke: transparent;
+	stroke-width: 0;
+}
+
+/* Unanswered dots get hover effect: grow + white stroke outline */
+.school-dot-group:hover .visible-dot {
+	r: 7;
+	stroke: #fff;
+	stroke-width: 2;
+}
+
+/* Answered dots - no hover, no pointer */
+.school-dot-group.dot-answered {
+	cursor: default;
+}
+
+.school-dot-group.dot-answered:hover .visible-dot {
+	r: 6;
+}
+
+/* Temporary feedback states */
+.school-dot-group.dot-correct .visible-dot {
+	fill: var(--success-color);
+}
+
+.school-dot-group.dot-wrong .visible-dot {
+	fill: var(--error-color);
+	r: 7;
+}
+
+.school-dot-group.dot-region-hint .visible-dot {
+	fill: var(--warning-color);
+	filter: url(#dot-glow);
+	r: 6;
+}
+
+/* Map feedback label (floats on the map like Seterra) */
+.map-feedback-panel {
+	position: absolute;
+	bottom: 12px;
+	right: 12px;
+	background: rgba(255,255,255,0.95);
+	color: #222;
+	padding: 6px 12px;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	pointer-events: none;
+	z-index: 10;
+	max-width: 300px;
+}
+
+.map-feedback-panel:empty {
+	display: none;
+}
+
+/* SVG map label near a dot (shows school name on correct/wrong) */
+.map-label {
+	font-size: 11px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	pointer-events: none;
+	font-weight: 600;
+}
+
+/* Zoom circle animation on correct answer */
+@keyframes zoom-ring {
+	0% { r: 6; opacity: 0.9; stroke-width: 3; }
+	100% { r: 30; opacity: 0; stroke-width: 1; }
+}
+
+#zoom-circle.animate {
+	animation: zoom-ring 0.8s ease-out forwards;
+}
+
+#next-button {
+	display: none !important;
+}
+
+/* Results Screen */
+#results-screen {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.results-card {
+	background: white;
+	border-radius: 12px;
+	padding: 40px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+	max-width: 800px;
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+.results-card h1 {
+	margin: 0 0 30px 0;
+	font-size: 36px;
+	text-align: center;
+	color: #222;
+}
+
+.results-summary {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 20px;
+	margin-bottom: 30px;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+}
+
+.result-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.result-stat .label {
+	font-size: 12px;
+	color: #666;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 8px;
+}
+
+.result-stat .value {
+	font-size: 28px;
+	font-weight: 600;
+	color: #0066cc;
+}
+
+.results-breakdown {
+	margin-bottom: 30px;
+}
+
+.results-breakdown h3 {
+	font-size: 18px;
+	color: #333;
+	margin: 0 0 15px 0;
+	border-bottom: 2px solid #e0e0e0;
+	padding-bottom: 10px;
+}
+
+.results-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.results-table thead {
+	background-color: #f9f9f9;
+}
+
+.results-table th {
+	padding: 10px;
+	text-align: left;
+	color: #444;
+	font-weight: 600;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.results-table td {
+	padding: 10px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.results-table tr:hover {
+	background-color: #f9f9f9;
+}
+
+/* Color-coded by attempt count: green=1, yellow=2, orange=3, red=missed */
+.results-table tr.result-attempt-1 td {
+	background-color: #d4edda;
+}
+
+.results-table tr.result-attempt-2 td {
+	background-color: #fff3cd;
+}
+
+.results-table tr.result-attempt-3 td {
+	background-color: #ffe0cc;
+}
+
+.results-table tr.result-missed td {
+	background-color: #f8d7da;
+}
+
+#play-again-button {
+	margin-top: 20px;
+	width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+	.sidebar {
+		width: 170px;
+	}
+}
+
+@media (max-width: 768px) {
+	.setup-card {
+		padding: 30px 20px;
+		max-width: 90%;
+	}
+
+	.setup-card h1 {
+		font-size: 24px;
+	}
+
+	#question-text {
+		font-size: 20px;
+	}
+
+	/* Hide sidebar on narrow screens */
+	.sidebar {
+		display: none;
+	}
+
+	.results-card {
+		padding: 20px;
+		max-width: 95%;
+	}
+
+	.results-card h1 {
+		font-size: 28px;
+		margin-bottom: 20px;
+	}
+
+	.results-summary {
+		grid-template-columns: 1fr;
+		gap: 15px;
+		padding: 15px;
+	}
+
+	.results-table {
+		font-size: 12px;
+	}
+
+	.results-table th,
+	.results-table td {
+		padding: 8px;
+	}
+}
+
+@media (max-width: 480px) {
+	.setup-card {
+		padding: 20px;
+	}
+
+	.setup-card h1 {
+		font-size: 20px;
+	}
+
+	#question-text {
+		font-size: 16px;
+	}
+
+	.results-card {
+		padding: 15px;
+	}
+
+	.results-card h1 {
+		font-size: 22px;
+	}
+}
+
+/* Scrollbar Styling */
+#remaining-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+#remaining-list::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+
+#remaining-list::-webkit-scrollbar-thumb {
+	background: #ccc;
+	border-radius: 10px;
+}
+
+#remaining-list::-webkit-scrollbar-thumb:hover {
+	background: #999;
+}
+</style>
+</head>
+<body>
+<div id="setup-screen" class="screen-container">
+	<div class="setup-card">
+		<h1>NCAA School Find Game</h1>
+		<p class="subtitle">Find the school on the map!</p>
+
+		<div class="conference-selector">
+			<label><input type="checkbox" class="conference-checkbox" value="SEC" checked> SEC</label>
+			<label><input type="checkbox" class="conference-checkbox" value="Big Ten" checked> Big Ten</label>
+			<label><input type="checkbox" class="conference-checkbox" value="Big 12" checked> Big 12</label>
+			<label><input type="checkbox" class="conference-checkbox" value="ACC" checked> ACC</label>
+		</div>
+
+		<button id="start-button" class="button button-primary">Start Game</button>
+	</div>
+</div>
+
+<div id="game-screen" class="screen-container" style="display:none;">
+	<div class="game-topbar">
+		<span class="topbar-progress"><span id="progress-display">0/16</span> | <span id="score-display">0</span>%</span>
+		<span class="topbar-prompt">Click on <span id="question-text" class="topbar-school-name">Stanford</span></span>
+		<span class="topbar-timer" id="timer-display">00:00</span>
+	</div>
+
+	<div class="game-body">
+		<div id="school-sidebar" class="sidebar">
+			<ul id="remaining-list"></ul>
+		</div>
+		<div class="game-map-wrap">
+			<svg id="game-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
+				<defs>
+					<filter id="dot-glow">
+						<feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+						<feMerge>
+							<feMergeNode in="coloredBlur"/>
+							<feMergeNode in="SourceGraphic"/>
+						</feMerge>
+					</filter>
+				</defs>
+				<g id="states"></g>
+				<g id="school-dots"></g>
+				<circle id="zoom-circle" r="0" fill="none" stroke="#28a745" stroke-width="3" opacity="0" />
+				<line id="feedback-line" style="display:none;" stroke="#dc3545" stroke-width="2" stroke-dasharray="6,4" />
+				<g id="map-labels"></g>
+				<g id="hover-tooltip" style="display:none; pointer-events:none;">
+					<rect id="hover-tooltip-bg" rx="3" ry="3" fill="white" fill-opacity="0.92" stroke="#888" stroke-width="0.5"></rect>
+					<text id="hover-tooltip-text" font-size="12" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="600" fill="#333"></text>
+				</g>
+			</svg>
+
+			<div id="feedback-panel" class="map-feedback-panel"></div>
+		</div>
+	</div>
+
+	<button id="next-button" style="display:none;">Next</button>
+</div>
+
+<div id="results-screen" class="screen-container" style="display:none;">
+	<div class="results-card">
+		<h1>Round Complete!</h1>
+
+		<div class="results-summary">
+			<div class="result-stat">
+				<span class="label">Total Score</span>
+				<span id="results-total-score" class="value">0</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Time Elapsed</span>
+				<span id="results-time" class="value">0:00</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Schools Found</span>
+				<span id="results-count" class="value">0/16</span>
+			</div>
+		</div>
+
+		<div class="results-breakdown">
+			<h3>Question Breakdown</h3>
+			<table id="results-table" class="results-table">
+				<thead>
+					<tr>
+						<th>School</th>
+						<th>Attempts</th>
+						<th>Time</th>
+						<th>Score</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<button id="play-again-button" class="button button-primary">Play Again</button>
+	</div>
+</div>
+<script>
+// NCAA Power Conference Schools - 2025-2026 realignment
+
+var NCAA_SCHOOLS = [
+	// SEC (16 schools)
+	{
+		name: "University of Alabama",
+		shortName: "Alabama",
+		mascot: "Crimson Tide",
+		conference: "SEC",
+		city: "Tuscaloosa",
+		state: "AL",
+		lat: 33.2098,
+		lon: -87.5692,
+		colorPrimary: "#9E1B32",
+		colorSecondary: "#828A8F",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Arkansas",
+		shortName: "Arkansas",
+		mascot: "Razorbacks",
+		conference: "SEC",
+		city: "Fayetteville",
+		state: "AR",
+		lat: 36.0726,
+		lon: -94.1732,
+		colorPrimary: "#C4243E",
+		colorSecondary: "#F1E4DE",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Auburn University",
+		shortName: "Auburn",
+		mascot: "Tigers",
+		conference: "SEC",
+		city: "Auburn",
+		state: "AL",
+		lat: 32.6024,
+		lon: -85.4870,
+		colorPrimary: "#FF6600",
+		colorSecondary: "#003366",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Florida",
+		shortName: "Florida",
+		mascot: "Gators",
+		conference: "SEC",
+		city: "Gainesville",
+		state: "FL",
+		lat: 29.6436,
+		lon: -82.3549,
+		colorPrimary: "#0033CC",
+		colorSecondary: "#FF6600",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Georgia",
+		shortName: "Georgia",
+		mascot: "Bulldogs",
+		conference: "SEC",
+		city: "Athens",
+		state: "GA",
+		lat: 33.9519,
+		lon: -83.3576,
+		colorPrimary: "#BA0021",
+		colorSecondary: "#000000",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Kentucky",
+		shortName: "Kentucky",
+		mascot: "Wildcats",
+		conference: "SEC",
+		city: "Lexington",
+		state: "KY",
+		lat: 38.0304,
+		lon: -84.4699,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Louisiana State University",
+		shortName: "LSU",
+		mascot: "Tigers",
+		conference: "SEC",
+		city: "Baton Rouge",
+		state: "LA",
+		lat: 30.4130,
+		lon: -91.1871,
+		colorPrimary: "#461D7C",
+		colorSecondary: "#FDD835",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Mississippi",
+		shortName: "Ole Miss",
+		mascot: "Rebels",
+		conference: "SEC",
+		city: "Oxford",
+		state: "MS",
+		lat: 34.3642,
+		lon: -89.5344,
+		colorPrimary: "#DC143C",
+		colorSecondary: "#003478",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Mississippi State University",
+		shortName: "Mississippi State",
+		mascot: "Bulldogs",
+		conference: "SEC",
+		city: "Starkville",
+		state: "MS",
+		lat: 33.4549,
+		lon: -88.7903,
+		colorPrimary: "#660033",
+		colorSecondary: "#FFCC00",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Missouri",
+		shortName: "Missouri",
+		mascot: "Tigers",
+		conference: "SEC",
+		city: "Columbia",
+		state: "MO",
+		lat: 38.2919,
+		lon: -92.3388,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Oklahoma",
+		shortName: "Oklahoma",
+		mascot: "Sooners",
+		conference: "SEC",
+		city: "Norman",
+		state: "OK",
+		lat: 35.2087,
+		lon: -97.4405,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "University of South Carolina",
+		shortName: "South Carolina",
+		mascot: "Gamecocks",
+		conference: "SEC",
+		city: "Columbia",
+		state: "SC",
+		lat: 34.1193,
+		lon: -81.0263,
+		colorPrimary: "#73000A",
+		colorSecondary: "#000000",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Tennessee",
+		shortName: "Tennessee",
+		mascot: "Volunteers",
+		conference: "SEC",
+		city: "Knoxville",
+		state: "TN",
+		lat: 35.9558,
+		lon: -83.9265,
+		colorPrimary: "#FF8200",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Texas A&M University",
+		shortName: "Texas A&M",
+		mascot: "Aggies",
+		conference: "SEC",
+		city: "College Station",
+		state: "TX",
+		lat: 30.6167,
+		lon: -96.3422,
+		colorPrimary: "#500000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "University of Texas",
+		shortName: "Texas",
+		mascot: "Longhorns",
+		conference: "SEC",
+		city: "Austin",
+		state: "TX",
+		lat: 30.2833,
+		lon: -97.7339,
+		colorPrimary: "#CC5500",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Vanderbilt University",
+		shortName: "Vanderbilt",
+		mascot: "Commodores",
+		conference: "SEC",
+		city: "Nashville",
+		state: "TN",
+		lat: 36.1446,
+		lon: -86.8016,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southeast",
+	},
+
+	// Big Ten (18 schools)
+	{
+		name: "University of Illinois",
+		shortName: "Illinois",
+		mascot: "Fighting Illini",
+		conference: "Big Ten",
+		city: "Urbana",
+		state: "IL",
+		lat: 40.1164,
+		lon: -88.2434,
+		colorPrimary: "#003D7A",
+		colorSecondary: "#FF6600",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Indiana University",
+		shortName: "Indiana",
+		mascot: "Hoosiers",
+		conference: "Big Ten",
+		city: "Bloomington",
+		state: "IN",
+		lat: 39.1684,
+		lon: -86.5244,
+		colorPrimary: "#990000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Iowa",
+		shortName: "Iowa",
+		mascot: "Hawkeyes",
+		conference: "Big Ten",
+		city: "Iowa City",
+		state: "IA",
+		lat: 41.9603,
+		lon: -91.6350,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Maryland",
+		shortName: "Maryland",
+		mascot: "Terrapins",
+		conference: "Big Ten",
+		city: "College Park",
+		state: "MD",
+		lat: 38.9869,
+		lon: -76.9426,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "University of Michigan",
+		shortName: "Michigan",
+		mascot: "Wolverines",
+		conference: "Big Ten",
+		city: "Ann Arbor",
+		state: "MI",
+		lat: 42.2656,
+		lon: -83.7430,
+		colorPrimary: "#00274C",
+		colorSecondary: "#FFCC00",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Michigan State University",
+		shortName: "Michigan State",
+		mascot: "Spartans",
+		conference: "Big Ten",
+		city: "East Lansing",
+		state: "MI",
+		lat: 42.7335,
+		lon: -84.4867,
+		colorPrimary: "#18453B",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Minnesota",
+		shortName: "Minnesota",
+		mascot: "Golden Gophers",
+		conference: "Big Ten",
+		city: "Minneapolis",
+		state: "MN",
+		lat: 44.9747,
+		lon: -93.2277,
+		colorPrimary: "#8B0000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Nebraska",
+		shortName: "Nebraska",
+		mascot: "Cornhuskers",
+		conference: "Big Ten",
+		city: "Lincoln",
+		state: "NE",
+		lat: 40.8258,
+		lon: -96.7017,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Northwestern University",
+		shortName: "Northwestern",
+		mascot: "Wildcats",
+		conference: "Big Ten",
+		city: "Evanston",
+		state: "IL",
+		lat: 42.0534,
+		lon: -87.6738,
+		colorPrimary: "#4D2DB7",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Ohio State University",
+		shortName: "Ohio State",
+		mascot: "Buckeyes",
+		conference: "Big Ten",
+		city: "Columbus",
+		state: "OH",
+		lat: 40.0084,
+		lon: -83.1074,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Oregon",
+		shortName: "Oregon",
+		mascot: "Ducks",
+		conference: "Big Ten",
+		city: "Eugene",
+		state: "OR",
+		lat: 44.0521,
+		lon: -123.0868,
+		colorPrimary: "#003831",
+		colorSecondary: "#FFC72C",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "Pennsylvania State University",
+		shortName: "Penn State",
+		mascot: "Nittany Lions",
+		conference: "Big Ten",
+		city: "University Park",
+		state: "PA",
+		lat: 40.8135,
+		lon: -77.8601,
+		colorPrimary: "#001A66",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "Purdue University",
+		shortName: "Purdue",
+		mascot: "Boilermakers",
+		conference: "Big Ten",
+		city: "West Lafayette",
+		state: "IN",
+		lat: 40.4258,
+		lon: -87.0081,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Rutgers University",
+		shortName: "Rutgers",
+		mascot: "Scarlet Knights",
+		conference: "Big Ten",
+		city: "New Brunswick",
+		state: "NJ",
+		lat: 40.5243,
+		lon: -74.4732,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "University of Southern California",
+		shortName: "USC",
+		mascot: "Trojans",
+		conference: "Big Ten",
+		city: "Los Angeles",
+		state: "CA",
+		lat: 34.0195,
+		lon: -118.2882,
+		colorPrimary: "#990000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "University of California, Los Angeles",
+		shortName: "UCLA",
+		mascot: "Bruins",
+		conference: "Big Ten",
+		city: "Los Angeles",
+		state: "CA",
+		lat: 34.0709,
+		lon: -118.4468,
+		colorPrimary: "#003DA5",
+		colorSecondary: "#FFD700",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "University of Washington",
+		shortName: "Washington",
+		mascot: "Huskies",
+		conference: "Big Ten",
+		city: "Seattle",
+		state: "WA",
+		lat: 47.6550,
+		lon: -122.3035,
+		colorPrimary: "#4B2C6F",
+		colorSecondary: "#FFD700",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "University of Wisconsin",
+		shortName: "Wisconsin",
+		mascot: "Badgers",
+		conference: "Big Ten",
+		city: "Madison",
+		state: "WI",
+		lat: 43.0731,
+		lon: -89.4012,
+		colorPrimary: "#C60C30",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+
+	// Big 12 (16 schools)
+	{
+		name: "University of Arizona",
+		shortName: "Arizona",
+		mascot: "Wildcats",
+		conference: "Big 12",
+		city: "Tucson",
+		state: "AZ",
+		lat: 32.2319,
+		lon: -110.9501,
+		colorPrimary: "#0013A3",
+		colorSecondary: "#CC0000",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Arizona State University",
+		shortName: "Arizona State",
+		mascot: "Sun Devils",
+		conference: "Big 12",
+		city: "Tempe",
+		state: "AZ",
+		lat: 33.4255,
+		lon: -111.9286,
+		colorPrimary: "#8B2252",
+		colorSecondary: "#FFC52F",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Baylor University",
+		shortName: "Baylor",
+		mascot: "Bears",
+		conference: "Big 12",
+		city: "Waco",
+		state: "TX",
+		lat: 31.5486,
+		lon: -97.1164,
+		colorPrimary: "#003D7A",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Brigham Young University",
+		shortName: "BYU",
+		mascot: "Cougars",
+		conference: "Big 12",
+		city: "Provo",
+		state: "UT",
+		lat: 40.2338,
+		lon: -111.6585,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Mountain",
+	},
+	{
+		name: "University of Central Florida",
+		shortName: "UCF",
+		mascot: "Knights",
+		conference: "Big 12",
+		city: "Orlando",
+		state: "FL",
+		lat: 28.6024,
+		lon: -81.2005,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Cincinnati",
+		shortName: "Cincinnati",
+		mascot: "Bearcats",
+		conference: "Big 12",
+		city: "Cincinnati",
+		state: "OH",
+		lat: 39.1331,
+		lon: -84.5186,
+		colorPrimary: "#000000",
+		colorSecondary: "#EF3B39",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Colorado",
+		shortName: "Colorado",
+		mascot: "Buffaloes",
+		conference: "Big 12",
+		city: "Boulder",
+		state: "CO",
+		lat: 40.0064,
+		lon: -105.2605,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFCC00",
+		hintRegion: "Mountain",
+	},
+	{
+		name: "University of Houston",
+		shortName: "Houston",
+		mascot: "Cougars",
+		conference: "Big 12",
+		city: "Houston",
+		state: "TX",
+		lat: 29.7589,
+		lon: -95.3677,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Iowa State University",
+		shortName: "Iowa State",
+		mascot: "Cyclones",
+		conference: "Big 12",
+		city: "Ames",
+		state: "IA",
+		lat: 42.0115,
+		lon: -93.6318,
+		colorPrimary: "#990000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Kansas",
+		shortName: "Kansas",
+		mascot: "Jayhawks",
+		conference: "Big 12",
+		city: "Lawrence",
+		state: "KS",
+		lat: 38.9596,
+		lon: -95.2672,
+		colorPrimary: "#0051BA",
+		colorSecondary: "#EF4601",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Kansas State University",
+		shortName: "Kansas State",
+		mascot: "Wildcats",
+		conference: "Big 12",
+		city: "Manhattan",
+		state: "KS",
+		lat: 39.2184,
+		lon: -97.5952,
+		colorPrimary: "#512B82",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "Oklahoma State University",
+		shortName: "Oklahoma State",
+		mascot: "Cowboys",
+		conference: "Big 12",
+		city: "Stillwater",
+		state: "OK",
+		lat: 36.1186,
+		lon: -97.0734,
+		colorPrimary: "#FF6A1D",
+		colorSecondary: "#000000",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Texas Christian University",
+		shortName: "TCU",
+		mascot: "Horned Frogs",
+		conference: "Big 12",
+		city: "Fort Worth",
+		state: "TX",
+		lat: 32.7555,
+		lon: -97.3308,
+		colorPrimary: "#4D1979",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Texas Tech University",
+		shortName: "Texas Tech",
+		mascot: "Red Raiders",
+		conference: "Big 12",
+		city: "Lubbock",
+		state: "TX",
+		lat: 33.5850,
+		lon: -101.8746,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "University of Utah",
+		shortName: "Utah",
+		mascot: "Utes",
+		conference: "Big 12",
+		city: "Salt Lake City",
+		state: "UT",
+		lat: 40.7629,
+		lon: -111.8410,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Mountain",
+	},
+	{
+		name: "West Virginia University",
+		shortName: "West Virginia",
+		mascot: "Mountaineers",
+		conference: "Big 12",
+		city: "Morgantown",
+		state: "WV",
+		lat: 39.6334,
+		lon: -79.9559,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southeast",
+	},
+
+	// ACC (18 schools)
+	{
+		name: "Boston College",
+		shortName: "Boston College",
+		mascot: "Eagles",
+		conference: "ACC",
+		city: "Chestnut Hill",
+		state: "MA",
+		lat: 42.3356,
+		lon: -71.1677,
+		colorPrimary: "#8B0000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "University of California, Berkeley",
+		shortName: "Cal",
+		mascot: "Golden Bears",
+		conference: "ACC",
+		city: "Berkeley",
+		state: "CA",
+		lat: 37.8722,
+		lon: -122.2597,
+		colorPrimary: "#003831",
+		colorSecondary: "#FFD700",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "Clemson University",
+		shortName: "Clemson",
+		mascot: "Tigers",
+		conference: "ACC",
+		city: "Clemson",
+		state: "SC",
+		lat: 34.6836,
+		lon: -82.8374,
+		colorPrimary: "#F66733",
+		colorSecondary: "#522D80",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Duke University",
+		shortName: "Duke",
+		mascot: "Blue Devils",
+		conference: "ACC",
+		city: "Durham",
+		state: "NC",
+		lat: 36.0014,
+		lon: -78.9382,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Florida State University",
+		shortName: "Florida State",
+		mascot: "Seminoles",
+		conference: "ACC",
+		city: "Tallahassee",
+		state: "FL",
+		lat: 30.4383,
+		lon: -84.2807,
+		colorPrimary: "#8B0000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Georgia Institute of Technology",
+		shortName: "Georgia Tech",
+		mascot: "Yellow Jackets",
+		conference: "ACC",
+		city: "Atlanta",
+		state: "GA",
+		lat: 33.7756,
+		lon: -84.3963,
+		colorPrimary: "#FFD700",
+		colorSecondary: "#000000",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Louisville",
+		shortName: "Louisville",
+		mascot: "Cardinals",
+		conference: "ACC",
+		city: "Louisville",
+		state: "KY",
+		lat: 38.2009,
+		lon: -85.7585,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#000000",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Miami",
+		shortName: "Miami",
+		mascot: "Hurricanes",
+		conference: "ACC",
+		city: "Coral Gables",
+		state: "FL",
+		lat: 25.7247,
+		lon: -80.2798,
+		colorPrimary: "#00843D",
+		colorSecondary: "#F47D31",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of North Carolina",
+		shortName: "North Carolina",
+		mascot: "Tar Heels",
+		conference: "ACC",
+		city: "Chapel Hill",
+		state: "NC",
+		lat: 35.9064,
+		lon: -79.0469,
+		colorPrimary: "#4B9CD3",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "North Carolina State University",
+		shortName: "NC State",
+		mascot: "Wolfpack",
+		conference: "ACC",
+		city: "Raleigh",
+		state: "NC",
+		lat: 35.7796,
+		lon: -78.6382,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "University of Notre Dame",
+		shortName: "Notre Dame",
+		mascot: "Fighting Irish",
+		conference: "ACC",
+		city: "Notre Dame",
+		state: "IN",
+		lat: 41.7029,
+		lon: -86.2394,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFD700",
+		hintRegion: "Midwest",
+	},
+	{
+		name: "University of Pittsburgh",
+		shortName: "Pittsburgh",
+		mascot: "Panthers",
+		conference: "ACC",
+		city: "Pittsburgh",
+		state: "PA",
+		lat: 40.4426,
+		lon: -79.9626,
+		colorPrimary: "#003366",
+		colorSecondary: "#FFD700",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "Southern Methodist University",
+		shortName: "SMU",
+		mascot: "Mustangs",
+		conference: "ACC",
+		city: "Dallas",
+		state: "TX",
+		lat: 32.8431,
+		lon: -96.7816,
+		colorPrimary: "#CC0000",
+		colorSecondary: "#003366",
+		hintRegion: "Southwest",
+	},
+	{
+		name: "Stanford University",
+		shortName: "Stanford",
+		mascot: "Cardinal",
+		conference: "ACC",
+		city: "Stanford",
+		state: "CA",
+		lat: 37.4275,
+		lon: -122.1697,
+		colorPrimary: "#8B0000",
+		colorSecondary: "#FFFFFF",
+		hintRegion: "Pacific",
+	},
+	{
+		name: "Syracuse University",
+		shortName: "Syracuse",
+		mascot: "Orange",
+		conference: "ACC",
+		city: "Syracuse",
+		state: "NY",
+		lat: 43.0514,
+		lon: -76.1474,
+		colorPrimary: "#FF6600",
+		colorSecondary: "#003366",
+		hintRegion: "Northeast",
+	},
+	{
+		name: "University of Virginia",
+		shortName: "Virginia",
+		mascot: "Cavaliers",
+		conference: "ACC",
+		city: "Charlottesville",
+		state: "VA",
+		lat: 38.0336,
+		lon: -78.5080,
+		colorPrimary: "#003366",
+		colorSecondary: "#FF6600",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Virginia Polytechnic Institute and State University",
+		shortName: "Virginia Tech",
+		mascot: "Hokies",
+		conference: "ACC",
+		city: "Blacksburg",
+		state: "VA",
+		lat: 37.2296,
+		lon: -80.4139,
+		colorPrimary: "#8B0000",
+		colorSecondary: "#FF8200",
+		hintRegion: "Southeast",
+	},
+	{
+		name: "Wake Forest University",
+		shortName: "Wake Forest",
+		mascot: "Demon Deacons",
+		conference: "ACC",
+		city: "Winston-Salem",
+		state: "NC",
+		lat: 36.1326,
+		lon: -80.2845,
+		colorPrimary: "#000000",
+		colorSecondary: "#FFD700",
+		hintRegion: "Southeast",
+	},
+];
+
+var CONFERENCES = ["SEC", "Big Ten", "Big 12", "ACC"];
+
+var SUBREGIONS = {
+	"Northeast": ["ME","NH","VT","MA","RI","CT","NY","NJ","PA","MD","DE","DC"],
+	"Southeast": ["VA","WV","NC","SC","GA","FL","AL","MS","TN","KY","LA","AR"],
+	"Midwest": ["OH","IN","IL","MI","WI","MN","IA","MO","ND","SD","NE","KS"],
+	"Southwest": ["TX","OK","NM","AZ"],
+	"Mountain": ["CO","UT","WY","MT","ID","NV"],
+	"Pacific": ["WA","OR","CA"],
+};
+/* map_data.js - US State SVG Path Strings (Albers projection) */
+/* State boundary paths are pre-projected using Albers Equal-Area Conic projection */
+/* matching ALBERS_CONFIG in map_projection.js for 960x600 viewBox */
+
+var US_STATE_PATHS = [
+	{
+		id: "AL",
+		name: "Alabama",
+		d: "M610.9,363.5L637.4,361.1L648.3,400.1L652.7,407.9L652.2,409.8L654.1,410.7L651.8,413.4L652.1,415.7L651.1,419.1L653.3,424.5L652.8,429.5L655.1,434.4L613.9,438.7L613.6,441.2L617.5,444.5L617.1,447.6L618.5,449.0L616.4,452.0L614.2,452.8L609.9,450.1L609.1,445.5L607.8,445.1L606.4,452.1L602.2,451.6L598.7,423.1L599.9,366.5L598.1,364.7L610.9,363.5Z"
+	},
+	{
+		id: "AR",
+		name: "Arkansas",
+		d: "M502.7,341.0L566.9,338.6L568.4,342.1L564.1,348.2L573.8,347.6L573.5,351.1L571.4,352.3L571.1,355.2L568.5,358.4L569.0,363.0L567.7,366.3L566.2,367.0L567.3,368.5L564.9,370.1L564.0,373.4L562.5,374.3L563.0,378.0L560.3,379.2L560.4,380.4L557.4,383.7L558.4,385.7L555.8,388.8L553.7,394.7L556.5,397.0L555.2,398.6L556.3,402.5L555.2,405.1L510.5,406.4L510.3,396.4L508.1,395.7L505.0,396.6L503.4,394.9L503.7,361.8L500.6,341.0L502.7,341.0Z"
+	},
+	{
+		id: "AZ",
+		name: "Arizona",
+		d: "M287.9,318.6L273.3,424.2L241.4,419.4L187.2,387.5L189.5,383.7L192.6,383.6L193.8,382.1L193.6,378.5L191.5,378.0L191.9,370.9L195.5,368.9L196.7,361.8L199.2,358.9L201.8,358.2L204.1,356.1L201.7,352.9L200.6,347.7L198.7,344.1L200.6,339.5L200.4,332.2L201.7,321.2L207.2,321.5L208.5,324.1L210.0,324.3L212.1,321.4L215.0,306.5L287.9,318.6Z"
+	},
+	{
+		id: "CA",
+		name: "California",
+		d: "M109.9,184.0L152.7,196.1L138.6,250.7L199.2,341.8L198.7,344.1L200.6,347.7L201.7,352.9L204.1,356.1L201.8,358.2L199.2,358.9L196.7,361.8L195.5,368.9L191.9,370.9L191.5,378.0L193.6,378.5L193.8,382.1L192.6,383.6L152.0,379.2L150.7,376.4L151.3,367.7L149.9,364.0L146.2,358.5L141.2,353.0L139.8,353.8L137.6,352.6L138.4,350.9L136.7,346.5L133.0,346.5L127.4,342.2L127.1,339.8L123.6,336.1L118.9,335.0L115.3,332.8L110.2,332.0L108.3,328.9L111.0,319.5L107.9,315.8L108.7,312.0L107.4,311.5L105.8,307.6L104.4,306.5L104.2,304.3L100.7,295.3L98.7,292.4L99.8,286.4L100.8,287.2L102.7,284.0L101.6,280.2L99.0,279.9L96.5,276.1L96.0,273.5L96.9,271.4L96.1,268.0L97.5,263.3L100.1,264.0L100.9,257.1L99.5,257.4L98.4,260.6L95.4,260.5L92.8,257.1L93.5,252.7L92.4,248.7L90.2,245.8L86.7,237.1L87.8,235.9L87.7,229.3L89.6,226.2L89.9,220.8L87.9,214.8L85.3,211.0L85.7,207.5L91.5,200.7L92.9,198.2L92.9,195.9L95.8,190.9L96.2,185.6L95.1,184.0L96.9,180.2L109.9,184.0Z"
+	},
+	{
+		id: "CO",
+		name: "Colorado",
+		d: "M313.8,245.8L344.2,249.4L395.4,253.6L390.8,329.0L319.8,322.7L287.9,318.6L298.2,243.9L313.8,245.8Z"
+	},
+	{
+		id: "CT",
+		name: "Connecticut",
+		d: "M793.0,198.8L809.8,194.9L812.7,206.0L812.3,207.9L805.5,210.8L798.4,212.1L795.9,215.4L789.5,220.0L788.0,218.2L790.9,215.4L789.6,214.1L787.1,200.0L793.0,198.8Z"
+	},
+	{
+		id: "DC",
+		name: "District of Columbia",
+		d: "M750.8,267.0L753.0,268.5L751.5,270.8L749.9,268.4L750.8,267.0Z"
+	},
+	{
+		id: "DE",
+		name: "Delaware",
+		d: "M770.3,247.3L768.4,251.3L769.3,254.2L772.0,256.5L773.5,260.9L777.5,265.0L779.0,264.9L781.0,271.1L771.8,272.9L765.5,250.0L767.4,247.4L770.3,247.3Z"
+	},
+	{
+		id: "FL",
+		name: "Florida",
+		d: "M647.3,435.4L655.1,434.4L657.9,439.6L700.4,436.6L701.7,440.5L703.6,440.1L703.8,436.3L702.6,432.9L703.9,431.3L712.2,432.3L717.8,448.8L724.4,459.9L733.6,471.3L732.7,472.4L734.0,478.2L738.1,484.2L746.8,500.5L748.1,520.2L746.6,520.7L745.7,525.7L746.5,527.1L743.9,531.0L742.4,530.4L739.5,532.3L734.3,534.0L732.4,532.3L732.7,529.4L727.7,521.9L724.5,520.9L722.1,522.4L719.4,518.2L718.3,514.5L714.2,510.9L713.0,508.3L712.9,504.3L710.9,503.9L711.7,506.2L710.1,507.0L703.4,497.8L700.9,495.6L704.9,487.5L701.7,488.4L699.8,491.0L697.2,487.7L698.6,477.2L698.0,468.7L695.7,467.0L694.7,464.3L691.6,464.2L687.3,460.2L684.2,458.8L683.6,456.0L681.5,455.3L679.4,452.5L672.7,449.2L667.5,450.8L668.1,453.6L666.3,453.3L660.0,457.6L653.0,459.2L652.9,457.2L651.0,454.9L642.0,450.3L635.8,448.6L630.4,448.5L616.4,452.0L618.5,449.0L617.1,447.6L617.5,444.5L613.6,441.2L613.9,438.7L647.3,435.4Z"
+	},
+	{
+		id: "GA",
+		name: "Georgia",
+		d: "M674.9,356.2L672.2,360.6L672.3,362.6L677.9,365.9L679.4,365.4L686.0,374.7L689.9,376.6L692.4,379.7L697.0,382.3L697.1,384.5L700.3,387.5L704.9,389.7L707.1,396.6L709.5,397.6L712.7,402.2L713.3,405.3L717.1,406.4L714.3,413.3L714.1,416.6L712.9,419.7L713.2,422.7L711.7,424.3L712.2,432.3L703.9,431.3L702.6,432.9L703.8,436.3L703.6,440.1L701.7,440.5L700.4,436.6L657.9,439.6L652.8,429.5L653.3,424.5L651.1,419.1L652.1,415.7L651.8,413.4L654.1,410.7L652.2,409.8L652.7,407.9L648.3,400.1L637.4,361.1L674.9,356.2Z"
+	},
+	{
+		id: "IA",
+		name: "Iowa",
+		d: "M542.4,207.8L544.5,207.7L544.8,210.5L546.9,212.2L545.4,214.6L547.2,221.7L552.2,223.6L553.3,225.9L556.5,229.1L557.0,231.0L560.2,232.7L560.7,235.0L560.4,238.7L558.6,240.0L558.3,242.9L554.2,245.5L548.8,246.8L548.1,250.1L550.5,252.7L550.5,256.0L548.7,257.9L548.5,260.8L544.7,263.1L544.6,266.5L543.0,265.9L540.0,262.3L518.5,263.7L483.3,264.1L481.7,261.6L482.4,256.8L481.0,252.6L481.1,247.8L478.7,246.2L478.3,243.6L479.1,241.3L478.2,238.0L476.4,236.8L473.9,228.3L471.4,224.2L473.1,217.7L474.1,216.4L472.4,214.5L472.9,211.3L472.1,209.7L542.4,207.8Z"
+	},
+	{
+		id: "ID",
+		name: "Idaho",
+		d: "M233.1,80.8L229.2,99.3L232.1,105.2L231.1,110.2L233.0,112.9L235.4,114.2L235.4,115.6L239.1,121.4L239.2,123.5L242.2,126.1L242.1,127.3L245.7,127.9L241.4,138.6L242.2,141.7L239.5,143.2L240.0,145.3L239.0,147.2L241.4,149.6L245.0,147.7L246.7,146.0L248.6,148.2L248.0,149.7L248.6,153.4L251.3,159.1L250.6,162.7L251.8,164.4L254.5,165.1L255.1,171.4L256.5,172.7L258.1,171.2L262.2,172.0L265.5,170.9L267.1,172.2L270.3,171.9L270.8,173.0L273.6,172.7L277.2,169.4L278.8,173.0L280.8,175.3L273.5,221.1L232.8,214.1L192.6,205.6L200.1,172.1L203.2,166.5L202.5,164.7L200.0,163.8L199.7,161.1L203.8,155.2L205.3,154.9L207.2,152.5L207.4,150.8L214.7,141.1L214.2,138.4L211.5,136.4L210.4,132.9L211.0,129.7L210.1,126.2L221.2,78.2L233.1,80.8Z"
+	},
+	{
+		id: "IL",
+		name: "Illinois",
+		d: "M553.3,225.9L592.0,223.4L591.9,227.0L597.1,237.8L601.0,282.0L599.8,285.6L601.9,289.4L602.4,292.7L598.4,302.3L596.7,302.7L597.3,305.1L596.3,306.1L595.8,310.6L596.4,311.8L594.7,314.6L596.3,317.8L590.4,320.0L590.0,322.0L591.6,324.4L589.9,326.1L584.2,323.6L582.6,324.0L580.6,327.4L581.4,328.4L579.0,328.4L575.3,323.2L576.4,321.9L575.0,318.4L574.8,315.5L569.8,311.8L568.2,312.3L566.5,309.9L562.0,306.4L561.9,303.4L564.0,298.4L563.5,296.7L564.8,294.3L559.5,292.5L557.9,294.3L556.8,293.2L555.5,287.1L545.9,278.7L543.8,273.0L543.5,269.2L544.6,266.5L544.7,263.1L548.5,260.8L548.7,257.9L550.5,256.0L550.5,252.7L548.1,250.1L548.8,246.8L554.2,245.5L558.3,242.9L558.6,240.0L560.4,238.7L560.2,232.7L557.0,231.0L556.5,229.1L553.3,225.9Z"
+	},
+	{
+		id: "IN",
+		name: "Indiana",
+		d: "M618.2,234.8L634.4,232.9L640.1,282.7L639.1,283.6L640.9,288.6L638.4,289.0L636.0,291.0L632.2,290.6L632.7,294.3L630.5,296.1L629.8,298.6L627.3,299.8L626.5,304.7L625.0,306.1L621.5,304.7L620.8,302.6L617.8,305.3L618.3,307.3L615.1,308.3L613.9,306.6L610.5,308.8L609.5,310.8L605.5,308.4L603.7,309.2L602.3,308.0L601.2,309.4L597.6,309.9L596.4,311.8L595.8,310.6L596.3,306.1L597.3,305.1L596.7,302.7L598.4,302.3L602.4,292.7L601.9,289.4L599.8,285.6L601.0,282.0L597.1,237.8L598.6,238.9L602.8,238.5L606.7,235.9L618.2,234.8Z"
+	},
+	{
+		id: "KS",
+		name: "Kansas",
+		d: "M396.3,272.6L489.8,275.1L491.2,276.9L495.8,278.3L492.7,283.8L496.9,290.0L499.9,290.9L500.4,331.6L419.6,330.5L390.8,329.0L394.2,272.4L396.3,272.6Z"
+	},
+	{
+		id: "KY",
+		name: "Kentucky",
+		d: "M654.0,287.3L657.5,289.5L659.6,287.8L665.2,288.5L666.5,286.5L668.5,285.6L669.5,288.7L671.3,288.9L673.6,291.2L674.0,296.9L676.2,300.2L678.9,302.7L680.0,304.7L683.0,306.4L685.0,306.5L680.2,312.3L675.2,315.8L675.4,317.3L673.4,318.8L673.5,320.4L670.8,321.5L670.1,323.7L662.3,327.8L600.8,333.5L597.5,332.9L598.0,336.3L577.8,337.9L578.4,335.4L580.7,336.1L581.4,328.4L580.6,327.4L582.6,324.0L584.2,323.6L589.9,326.1L591.6,324.4L590.0,322.0L590.4,320.0L596.3,317.8L594.7,314.6L597.6,309.9L601.2,309.4L602.3,308.0L603.7,309.2L605.5,308.4L609.5,310.8L610.5,308.8L613.9,306.6L615.1,308.3L618.3,307.3L617.8,305.3L620.8,302.6L621.5,304.7L625.0,306.1L626.5,304.7L627.3,299.8L629.8,298.6L630.5,296.1L632.7,294.3L632.2,290.6L636.0,291.0L638.4,289.0L640.9,288.6L639.1,283.6L640.1,282.7L645.6,282.0L649.0,285.5L649.4,287.2L654.0,287.3Z"
+	},
+	{
+		id: "LA",
+		name: "Louisiana",
+		d: "M517.2,406.3L555.2,405.1L556.8,407.2L555.7,408.1L555.7,411.9L558.2,414.1L558.8,419.7L557.1,424.1L553.5,426.9L552.8,431.2L551.2,430.9L551.3,437.7L549.4,438.0L550.7,441.7L549.6,443.1L579.7,441.4L578.5,447.6L581.4,451.5L582.3,454.6L584.3,456.4L579.7,459.2L579.5,461.1L583.5,462.1L585.0,459.0L588.5,461.7L588.4,464.1L586.5,465.3L582.8,464.6L583.4,466.3L582.3,469.0L585.6,471.2L590.6,471.5L592.6,474.2L594.1,474.5L591.7,477.8L588.8,477.4L586.2,474.3L580.1,473.0L579.9,469.8L577.0,471.0L577.4,473.7L576.2,476.2L574.1,476.7L572.3,474.1L568.6,474.2L567.4,477.1L564.9,478.1L562.1,476.5L560.0,476.4L557.7,471.9L554.0,470.0L552.6,470.4L551.0,466.6L546.7,467.3L546.5,464.9L542.5,467.4L543.1,469.1L539.9,470.8L534.9,470.2L524.9,466.9L516.2,468.0L515.0,468.7L513.6,466.9L517.2,460.2L515.9,456.6L517.0,454.7L516.4,452.1L518.0,450.1L519.5,445.3L519.1,441.3L514.6,433.8L514.4,429.7L510.9,425.7L510.5,406.4L517.2,406.3Z"
+	},
+	{
+		id: "MA",
+		name: "Massachusetts",
+		d: "M817.3,176.1L818.7,176.0L820.0,179.1L820.1,181.8L818.7,184.8L819.4,187.6L822.4,187.2L824.9,189.6L825.2,191.9L826.9,192.1L827.6,194.2L831.8,194.9L835.6,192.1L835.4,194.8L829.6,198.8L827.3,199.5L825.5,198.2L823.4,199.3L823.7,200.6L821.4,202.1L819.5,199.0L817.2,197.6L815.4,193.5L787.1,200.0L787.0,186.6L813.2,180.9L814.2,178.8L817.3,176.1Z"
+	},
+	{
+		id: "MD",
+		name: "Maryland",
+		d: "M769.6,283.2L768.9,283.3L769.6,283.2ZM713.9,260.0L765.5,250.0L771.8,272.9L781.0,271.1L780.0,279.5L771.3,283.7L770.7,280.6L769.3,279.7L770.7,278.0L767.8,275.4L767.4,276.9L764.4,277.2L762.7,274.1L763.6,273.9L762.8,269.5L763.3,267.6L760.9,262.0L761.7,258.3L763.9,257.2L763.6,253.5L761.9,254.3L762.2,256.1L759.0,259.2L758.4,261.6L759.3,267.0L758.4,269.8L759.9,273.9L762.4,276.5L762.6,278.8L764.2,280.7L763.9,282.4L760.0,280.1L755.1,279.7L753.1,277.1L750.8,279.3L749.3,277.3L753.0,268.5L750.8,267.0L749.9,268.4L747.7,267.0L744.6,266.7L744.0,264.0L742.2,262.8L740.0,262.9L737.4,258.0L735.0,258.5L732.3,257.2L731.3,258.9L728.9,259.2L728.8,261.3L724.4,260.8L722.1,264.0L720.2,263.8L717.9,267.4L715.5,269.6L713.9,260.0Z"
+	},
+	{
+		id: "ME",
+		name: "Maine",
+		d: "M819.2,172.2L817.3,171.4L817.1,169.5L814.4,168.0L803.4,132.9L808.2,129.0L807.0,128.0L808.3,124.6L810.1,122.8L809.3,121.8L810.9,119.6L809.4,116.6L809.3,111.5L810.8,109.4L810.1,104.2L815.7,87.8L818.1,87.7L819.2,91.0L821.1,91.7L824.5,88.6L827.0,87.9L828.3,86.1L835.3,89.6L842.8,114.4L847.5,114.4L847.5,116.6L849.2,118.2L848.8,120.3L851.5,122.4L853.6,121.1L857.9,126.8L856.2,130.4L854.3,129.8L853.7,132.2L851.7,132.2L852.0,134.0L849.6,134.5L847.0,139.5L845.3,137.1L843.9,137.3L845.4,140.0L842.9,142.2L841.5,140.2L840.4,141.8L837.1,142.7L836.3,140.1L834.5,141.3L835.4,143.0L834.7,147.5L835.4,148.5L833.6,151.3L831.0,151.2L830.2,153.9L828.4,154.8L827.3,157.1L825.2,157.3L824.0,155.5L822.0,159.4L823.3,161.2L821.4,162.5L821.7,164.2L819.9,167.0L819.2,172.2Z"
+	},
+	{
+		id: "MI",
+		name: "Michigan",
+		d: "M653.0,231.1L634.6,234.2L634.4,232.9L606.7,235.9L609.2,233.2L612.2,226.1L613.3,217.2L612.4,211.7L607.3,201.2L608.2,197.0L606.8,192.2L609.4,186.9L609.6,182.6L608.9,180.4L611.0,179.3L610.9,176.2L614.2,175.0L616.5,171.4L617.0,178.1L618.4,178.3L619.7,174.7L619.2,169.0L620.1,167.5L623.5,166.2L621.9,162.3L623.9,158.7L626.8,158.2L630.3,159.9L633.5,159.8L635.4,162.3L637.9,162.2L642.3,164.1L643.7,163.8L646.4,167.4L644.9,169.8L647.0,172.3L648.1,175.4L648.2,182.4L645.7,184.5L645.6,188.1L642.5,189.8L641.3,194.3L642.2,195.8L645.6,196.9L647.8,194.3L650.0,189.1L654.4,186.6L656.8,187.7L658.6,190.2L661.8,201.6L664.0,206.0L663.5,212.9L661.5,214.3L661.0,211.8L659.7,212.8L658.7,218.6L656.3,221.1L656.0,225.5L653.1,229.6L653.0,231.1ZM616.6,160.1L617.0,162.3L615.4,162.9L615.7,159.6L616.6,160.1ZM590.6,174.6L588.4,172.8L589.4,170.1L586.3,169.9L587.3,167.3L587.2,164.0L582.6,159.8L576.9,158.4L575.2,159.1L569.5,156.8L556.0,153.9L554.3,150.9L551.9,149.9L556.8,147.6L558.9,145.3L564.4,144.0L567.9,141.0L569.5,140.7L576.4,133.2L579.2,131.4L582.2,132.5L576.6,140.6L577.0,144.1L579.2,141.2L583.6,141.3L587.2,142.8L590.8,147.6L592.5,148.3L595.7,147.2L596.6,148.3L599.9,148.6L606.3,143.6L614.6,142.5L617.7,140.7L620.1,140.3L621.2,145.5L623.8,145.9L626.3,144.8L627.5,145.8L629.0,144.1L632.6,143.2L633.5,149.6L635.5,152.1L638.2,152.5L638.2,150.7L640.7,150.4L642.3,152.1L641.3,153.7L634.1,153.4L630.8,154.6L626.9,152.8L626.0,155.0L626.7,156.6L625.1,156.4L622.4,154.2L615.9,153.2L614.1,155.9L610.8,156.9L607.0,156.8L605.7,157.9L605.5,160.0L601.6,162.1L601.6,159.7L599.8,159.3L599.3,162.0L596.3,162.3L595.1,163.6L590.6,174.6ZM570.6,122.4L567.6,125.0L566.0,125.4L566.0,123.5L573.6,118.5L572.3,121.7L570.6,122.4Z"
+	},
+	{
+		id: "MN",
+		name: "Minnesota",
+		d: "M531.2,148.4L530.2,147.6L527.6,149.2L528.1,160.2L527.3,161.4L523.7,163.1L520.8,167.1L520.7,169.8L522.2,170.0L524.0,172.3L522.5,175.2L522.2,185.2L525.8,188.5L528.6,188.7L530.1,190.7L534.2,192.6L535.0,195.0L538.9,198.0L541.1,198.6L543.9,202.6L543.6,205.6L544.5,207.7L473.9,209.3L474.1,175.7L471.1,173.5L468.8,169.9L472.4,165.9L472.3,156.3L470.7,154.4L469.7,150.3L469.1,132.6L465.8,122.7L465.5,115.2L466.3,112.7L464.8,106.8L490.5,106.9L490.4,99.8L492.9,100.0L494.5,101.4L496.3,110.9L497.6,112.0L501.7,112.3L502.2,113.2L507.0,113.5L507.6,115.5L511.7,114.9L511.6,114.1L514.8,113.0L517.6,113.3L520.9,114.7L521.8,116.6L523.7,116.3L525.6,120.4L526.3,118.7L529.4,117.7L530.1,119.4L533.8,120.5L533.9,122.1L535.8,123.3L539.6,122.4L541.7,120.5L544.8,119.2L546.0,121.9L553.6,121.0L557.2,123.2L560.4,122.5L560.2,123.6L556.1,126.2L546.6,130.5L535.7,142.2L530.2,146.9L531.2,148.4Z"
+	},
+	{
+		id: "MO",
+		name: "Missouri",
+		d: "M538.5,262.4L540.0,262.3L543.0,265.9L544.6,266.5L543.5,269.2L543.8,273.0L545.9,278.7L555.5,287.1L556.8,293.2L557.9,294.3L559.5,292.5L564.8,294.3L563.5,296.7L564.0,298.4L561.9,303.4L562.0,306.4L566.5,309.9L568.2,312.3L569.8,311.8L574.8,315.5L575.0,318.4L576.4,321.9L575.3,323.2L579.0,328.4L581.4,328.4L580.7,336.1L578.4,335.4L577.8,337.9L576.0,338.0L576.4,342.6L573.8,347.6L564.1,348.2L568.4,342.1L566.9,338.6L500.6,341.0L499.9,290.9L496.9,290.0L492.7,283.8L495.8,278.3L491.2,276.9L486.3,270.2L483.3,264.1L499.2,264.3L538.5,262.4Z"
+	},
+	{
+		id: "MS",
+		name: "Mississippi",
+		d: "M594.1,365.0L598.1,364.7L599.9,366.5L598.7,423.1L602.2,451.6L600.5,452.5L596.6,452.4L594.9,451.3L591.1,452.4L584.3,456.4L582.3,454.6L581.4,451.5L578.5,447.6L579.7,441.4L549.6,443.1L550.7,441.7L549.4,438.0L551.3,437.7L551.2,430.9L552.8,431.2L553.5,426.9L557.1,424.1L558.8,419.7L558.2,414.1L555.7,411.9L555.7,408.1L556.8,407.2L555.2,405.1L556.3,402.5L555.2,398.6L556.5,397.0L553.7,394.7L555.8,388.8L558.4,385.7L557.4,383.7L560.4,380.4L560.3,379.2L563.0,378.0L562.5,374.3L564.0,373.4L564.9,370.1L567.3,368.5L566.2,367.0L594.1,365.0Z"
+	},
+	{
+		id: "MT",
+		name: "Montana",
+		d: "M380.3,102.7L374.1,176.8L308.0,169.4L282.3,165.5L280.8,175.3L278.8,173.0L277.2,169.4L273.6,172.7L270.8,173.0L270.3,171.9L267.1,172.2L265.5,170.9L262.2,172.0L258.1,171.2L256.5,172.7L255.1,171.4L254.5,165.1L251.8,164.4L250.6,162.7L251.3,159.1L248.6,153.4L248.0,149.7L248.6,148.2L246.7,146.0L245.0,147.7L241.4,149.6L239.0,147.2L240.0,145.3L239.5,143.2L242.2,141.7L241.4,138.6L245.7,127.9L242.1,127.3L242.2,126.1L239.2,123.5L239.1,121.4L235.4,115.6L235.4,114.2L233.0,112.9L231.1,110.2L232.1,105.2L229.2,99.3L233.1,80.8L288.5,91.4L313.7,95.1L380.3,102.7Z"
+	},
+	{
+		id: "NC",
+		name: "North Carolina",
+		d: "M702.3,322.4L723.8,319.2L776.9,308.7L780.2,315.7L776.0,315.8L775.6,316.9L770.9,319.0L770.4,320.2L767.1,321.2L767.6,322.4L776.3,319.6L778.1,321.0L780.6,319.7L782.6,323.9L782.1,326.2L780.4,326.8L777.7,332.1L772.8,333.4L772.6,336.7L775.4,339.4L777.2,339.6L775.1,345.4L772.3,345.4L764.6,348.6L760.1,353.2L756.9,358.7L755.9,364.9L752.5,364.2L747.3,366.5L727.0,351.9L710.1,354.4L710.0,352.2L707.2,349.4L705.9,350.8L705.5,348.9L686.9,350.8L674.9,356.2L656.7,358.8L656.6,354.3L659.5,353.5L660.3,350.3L663.6,347.1L667.7,346.4L671.0,343.1L674.7,341.5L677.3,336.9L679.2,335.4L679.9,337.2L685.2,332.7L688.0,333.1L689.3,329.3L691.9,328.0L691.9,323.5L702.3,322.4Z"
+	},
+	{
+		id: "ND",
+		name: "North Dakota",
+		d: "M464.8,106.8L466.3,112.7L465.5,115.2L465.8,122.7L469.1,132.6L469.7,150.3L470.7,154.4L472.3,156.3L472.7,163.8L375.5,159.2L380.3,102.7L464.8,106.8Z"
+	},
+	{
+		id: "NE",
+		name: "Nebraska",
+		d: "M380.6,214.9L446.1,218.3L446.5,219.3L453.4,222.8L455.1,221.0L463.4,221.6L470.6,225.1L471.4,227.8L473.9,228.3L476.4,236.8L478.2,238.0L479.1,241.3L478.3,243.6L478.7,246.2L481.1,247.8L481.0,252.6L482.4,256.8L481.7,261.6L489.8,275.1L394.2,272.4L395.4,253.6L367.6,251.5L370.8,214.1L380.6,214.9Z"
+	},
+	{
+		id: "NH",
+		name: "New Hampshire",
+		d: "M803.4,132.9L814.4,168.0L817.1,169.5L817.3,171.4L819.2,172.2L818.7,176.0L817.3,176.1L814.2,178.8L813.2,180.9L797.8,184.3L796.2,183.2L795.7,180.4L796.6,179.1L794.9,168.7L797.1,158.3L795.9,153.9L799.7,151.1L801.0,147.5L799.1,144.8L800.0,141.4L799.4,139.6L800.0,134.5L803.1,134.2L803.4,132.9Z"
+	},
+	{
+		id: "NJ",
+		name: "New Jersey",
+		d: "M781.0,219.1L786.1,220.6L785.7,226.3L783.8,228.1L783.2,231.2L787.3,231.7L788.1,233.7L788.8,244.0L786.1,252.3L783.8,255.1L782.3,260.3L780.3,257.6L775.9,257.0L770.1,254.0L769.0,251.0L770.3,247.3L773.7,245.0L773.6,243.5L777.2,239.5L777.5,237.8L772.8,234.9L772.1,232.7L770.2,232.4L769.6,230.4L771.0,226.7L769.4,225.0L772.0,220.4L772.3,218.2L773.8,216.5L781.0,219.1Z"
+	},
+	{
+		id: "NM",
+		name: "New Mexico",
+		d: "M311.7,321.6L376.7,327.9L368.7,421.7L313.0,416.5L312.4,418.3L313.9,420.7L287.6,417.5L286.5,425.9L273.3,424.2L287.9,318.6L311.7,321.6Z"
+	},
+	{
+		id: "NV",
+		name: "Nevada",
+		d: "M192.6,205.6L232.8,214.1L212.1,321.4L210.0,324.3L208.5,324.1L207.2,321.5L201.7,321.2L200.4,332.2L200.6,339.5L199.2,341.8L138.6,250.7L152.7,196.1L192.6,205.6Z"
+	},
+	{
+		id: "NY",
+		name: "New York",
+		d: "M775.9,145.6L777.1,152.9L779.1,155.9L779.6,159.5L779.0,163.5L781.3,168.2L781.0,169.9L783.8,172.4L787.0,186.6L786.7,199.4L789.6,214.1L790.9,215.4L788.0,218.2L789.5,220.0L795.7,220.1L796.6,218.7L804.0,216.3L807.4,212.3L808.2,214.4L810.6,214.7L806.3,218.7L796.8,225.3L789.6,227.7L787.6,229.1L785.7,226.3L786.1,220.6L773.8,216.5L772.9,215.3L770.8,215.7L767.6,213.1L767.3,210.4L765.2,208.6L764.2,208.9L762.2,206.8L702.7,218.5L701.8,213.5L709.1,206.8L710.0,204.0L712.4,201.8L710.8,198.8L709.5,198.4L707.8,193.5L715.2,190.0L725.0,188.7L728.4,190.2L730.1,189.0L735.9,187.9L739.1,185.9L742.1,181.8L744.5,181.2L743.5,176.2L744.1,173.0L740.7,171.6L740.9,169.2L745.4,165.0L751.7,154.4L756.8,149.9L765.7,148.4L775.9,145.6Z"
+	},
+	{
+		id: "OH",
+		name: "Ohio",
+		d: "M692.5,220.6L696.6,245.5L694.7,246.9L696.0,248.7L696.4,251.6L695.2,256.4L695.0,263.4L690.5,270.3L688.8,271.4L687.1,270.4L685.9,273.3L684.2,273.5L683.0,277.3L683.7,279.4L682.5,281.4L679.9,278.8L677.9,283.7L679.1,286.5L677.5,287.7L677.3,290.3L673.6,291.2L671.3,288.9L669.5,288.7L668.5,285.6L666.5,286.5L665.2,288.5L659.6,287.8L657.5,289.5L654.0,287.3L649.4,287.2L649.0,285.5L645.6,282.0L640.1,282.7L634.6,234.2L653.0,231.1L660.7,234.2L661.9,232.6L667.3,235.8L673.4,232.4L677.2,232.4L680.7,228.3L686.1,224.0L692.5,220.6Z"
+	},
+	{
+		id: "OK",
+		name: "Oklahoma",
+		d: "M419.6,330.5L500.4,331.6L500.6,341.0L503.7,361.8L503.4,394.9L497.4,392.9L495.9,390.8L491.9,389.0L490.9,390.6L487.0,390.5L486.1,389.5L482.5,391.4L481.0,390.4L477.7,391.3L474.6,394.2L473.5,392.5L470.3,391.2L466.9,391.1L465.8,389.0L461.9,393.1L460.7,390.7L458.9,391.4L457.6,389.9L454.0,388.4L451.2,390.8L450.1,388.2L447.9,387.8L446.7,385.8L443.8,384.9L441.8,386.6L440.6,385.0L437.6,385.1L434.2,383.4L431.1,383.5L430.2,379.8L425.3,379.4L423.5,380.0L420.2,376.2L419.0,376.4L420.5,339.9L376.0,337.3L376.7,327.9L419.6,330.5Z"
+	},
+	{
+		id: "OR",
+		name: "Oregon",
+		d: "M132.2,109.2L133.4,109.3L135.5,112.0L136.1,114.5L135.1,120.1L141.0,123.9L147.4,122.6L150.9,123.2L154.6,125.3L154.7,126.6L162.3,125.9L163.7,127.2L167.6,127.7L171.1,126.7L177.1,126.6L182.2,127.4L184.2,126.7L210.4,132.9L211.5,136.4L214.2,138.4L214.7,141.1L207.4,150.8L207.2,152.5L205.3,154.9L203.8,155.2L199.7,161.1L200.0,163.8L202.5,164.7L203.2,166.5L200.1,172.1L192.6,205.6L138.9,192.4L96.9,180.2L95.7,177.6L96.4,171.5L97.9,167.5L97.1,163.8L107.4,147.9L113.9,131.0L117.1,124.8L120.4,115.7L121.2,110.4L122.8,107.6L128.5,106.4L130.1,109.1L132.2,109.2Z"
+	},
+	{
+		id: "PA",
+		name: "Pennsylvania",
+		d: "M701.9,213.8L702.7,218.5L762.2,206.8L764.2,208.9L765.2,208.6L767.3,210.4L767.6,213.1L770.8,215.7L772.9,215.3L773.8,216.5L772.3,218.2L772.0,220.4L769.4,225.0L771.0,226.7L769.6,230.4L770.2,232.4L772.1,232.7L772.8,234.9L777.5,237.8L777.2,239.5L773.6,243.5L773.7,245.0L770.3,247.3L767.4,247.4L765.5,250.0L699.3,262.5L692.5,220.6L701.9,213.8Z"
+	},
+	{
+		id: "RI",
+		name: "Rhode Island",
+		d: "M819.5,199.0L821.4,202.1L818.9,203.2L819.5,199.0ZM813.4,194.1L815.4,193.5L817.2,197.6L819.0,198.5L817.3,198.7L816.6,201.7L817.1,205.6L812.3,207.9L812.7,206.0L809.9,195.2L813.4,194.1Z"
+	},
+	{
+		id: "SC",
+		name: "South Carolina",
+		d: "M679.9,354.2L682.9,352.1L686.9,350.8L705.5,348.9L705.9,350.8L707.2,349.4L710.0,352.2L710.1,354.4L727.0,351.9L747.3,366.5L744.8,367.9L742.0,371.5L739.6,376.9L739.7,380.8L737.7,384.3L734.2,384.9L733.9,387.3L730.7,390.3L729.1,393.3L726.1,395.0L723.1,398.4L722.9,399.8L720.0,401.8L717.1,406.4L713.3,405.3L712.7,402.2L709.5,397.6L707.1,396.6L704.9,389.7L700.3,387.5L697.1,384.5L697.0,382.3L692.4,379.7L689.9,376.6L686.0,374.7L679.4,365.4L677.9,365.9L672.3,362.6L672.2,360.6L674.9,356.2L679.9,354.2Z"
+	},
+	{
+		id: "SD",
+		name: "South Dakota",
+		d: "M375.5,159.2L472.7,163.8L472.4,165.9L468.8,169.9L471.1,173.5L474.1,175.7L473.9,209.3L472.1,209.7L472.9,211.3L472.4,214.5L474.1,216.4L473.1,217.7L471.4,224.2L473.9,228.3L471.4,227.8L470.6,225.1L463.4,221.6L455.1,221.0L453.4,222.8L446.5,219.3L446.1,218.3L403.6,216.5L370.8,214.1L375.5,159.2Z"
+	},
+	{
+		id: "TN",
+		name: "Tennessee",
+		d: "M598.0,336.3L597.5,332.9L600.8,333.5L649.7,329.2L691.9,323.5L691.9,328.0L689.3,329.3L688.0,333.1L685.2,332.7L679.9,337.2L679.2,335.4L677.3,336.9L674.7,341.5L671.0,343.1L667.7,346.4L663.6,347.1L660.3,350.3L659.5,353.5L656.6,354.3L656.7,358.8L598.1,364.7L566.2,367.0L567.7,366.3L569.0,363.0L568.5,358.4L571.1,355.2L571.4,352.3L573.5,351.1L573.8,347.6L576.4,342.6L576.0,338.0L598.0,336.3Z"
+	},
+	{
+		id: "TX",
+		name: "Texas",
+		d: "M393.6,338.5L420.5,339.9L419.0,376.4L420.2,376.2L423.5,380.0L425.3,379.4L430.2,379.8L431.1,383.5L434.2,383.4L437.6,385.1L440.6,385.0L441.8,386.6L443.8,384.9L446.7,385.8L447.9,387.8L450.1,388.2L451.2,390.8L454.0,388.4L457.6,389.9L458.9,391.4L460.7,390.7L461.9,393.1L465.8,389.0L466.9,391.1L470.3,391.2L473.5,392.5L474.6,394.2L477.7,391.3L481.0,390.4L482.5,391.4L486.1,389.5L487.0,390.5L490.9,390.6L491.9,389.0L495.9,390.8L497.4,392.9L503.4,394.9L505.0,396.6L508.1,395.7L510.3,396.4L510.9,425.7L514.4,429.7L514.6,433.8L519.1,441.3L519.5,445.3L518.0,450.1L516.4,452.1L517.0,454.7L515.9,456.6L517.2,460.2L513.6,466.9L515.0,468.7L512.4,468.9L504.0,471.6L500.9,470.2L500.4,467.2L498.3,469.3L496.8,468.9L496.0,471.5L497.7,472.6L498.0,476.1L490.1,484.4L480.2,489.4L479.2,488.6L476.3,489.8L476.2,488.7L472.1,489.5L470.3,487.1L469.1,487.6L473.4,492.4L470.2,493.9L467.3,493.0L466.8,496.4L463.0,499.8L459.1,506.2L456.6,512.9L454.8,512.3L454.3,514.7L456.2,514.2L455.2,519.0L453.9,519.2L453.8,522.0L455.3,523.5L455.7,529.1L457.5,531.1L457.9,534.6L459.4,537.8L454.1,539.6L452.1,537.2L448.1,536.2L442.8,536.3L438.3,533.1L434.9,532.7L432.4,530.2L428.9,529.3L426.6,526.9L425.2,521.2L422.3,517.8L422.8,514.9L421.5,511.8L422.1,509.2L420.1,506.2L418.4,505.8L415.7,503.1L414.9,499.7L412.6,496.5L409.2,493.8L407.7,488.1L406.2,486.5L404.2,481.9L403.7,478.2L401.8,475.5L398.4,472.9L397.7,471.3L394.6,469.6L392.3,465.4L381.0,464.0L377.5,462.3L376.6,464.2L372.6,464.6L369.4,468.3L367.2,474.3L366.2,474.4L363.7,477.9L361.0,477.8L357.2,474.6L347.6,469.2L345.8,466.6L342.1,463.9L339.9,458.3L340.1,453.5L337.8,449.4L337.5,446.0L335.9,443.7L330.0,439.9L322.2,429.5L318.4,427.1L316.2,421.9L313.9,420.7L312.4,418.3L313.0,416.5L368.7,421.7L375.4,337.3L393.6,338.5Z"
+	},
+	{
+		id: "UT",
+		name: "Utah",
+		d: "M258.3,218.7L273.5,221.1L270.5,239.8L298.2,243.9L287.9,318.6L215.0,306.5L232.8,214.1L258.3,218.7Z"
+	},
+	{
+		id: "VA",
+		name: "Virginia",
+		d: "M777.8,280.2L780.0,279.5L778.8,283.0L777.1,284.5L775.3,296.5L773.2,298.5L771.8,296.1L771.9,290.2L774.2,282.2L777.8,280.2ZM730.6,261.9L739.1,266.7L740.0,262.9L742.2,262.8L744.0,264.0L744.6,266.7L747.7,267.0L749.9,268.4L751.5,270.8L750.9,274.0L749.3,275.1L748.8,278.0L749.8,279.8L753.5,278.4L754.7,281.2L760.0,281.4L761.9,283.4L766.4,285.1L765.7,290.7L768.2,294.4L766.6,296.7L766.9,299.1L769.0,300.1L767.5,302.7L763.8,300.4L763.3,301.6L766.4,303.2L773.6,302.2L776.9,308.7L723.8,319.2L662.5,327.4L670.1,323.7L670.8,321.5L673.5,320.4L673.4,318.8L675.4,317.3L675.2,315.8L680.2,312.3L685.0,306.5L685.0,308.0L687.5,310.9L690.2,312.1L692.0,311.7L694.4,308.8L696.7,310.4L700.3,308.8L706.3,304.2L707.0,305.2L709.3,303.2L708.8,299.8L714.9,285.9L715.2,281.4L718.1,283.5L720.6,283.9L721.8,282.1L723.6,275.0L725.7,276.3L730.9,267.6L730.6,261.9Z"
+	},
+	{
+		id: "VT",
+		name: "Vermont",
+		d: "M799.4,139.6L800.0,141.4L799.1,144.8L801.0,147.5L799.7,151.1L795.9,153.9L797.1,158.3L794.9,168.7L796.6,179.1L795.7,180.4L796.2,183.2L797.8,184.3L787.0,186.6L783.8,172.4L781.0,169.9L781.3,168.2L779.0,163.5L779.6,159.5L779.1,155.9L777.1,152.9L775.9,145.6L799.4,139.6Z"
+	},
+	{
+		id: "WA",
+		name: "Washington",
+		d: "M221.2,78.2L210.1,126.2L211.0,129.7L210.4,132.9L184.2,126.7L182.2,127.4L177.1,126.6L171.1,126.7L167.6,127.7L163.7,127.2L162.3,125.9L154.7,126.6L154.6,125.3L150.9,123.2L147.4,122.6L141.0,123.9L135.1,120.1L136.1,114.5L135.5,112.0L133.4,109.3L130.1,109.1L128.5,106.4L126.5,105.1L124.3,105.6L122.4,103.3L123.7,101.0L125.7,100.2L124.3,95.8L125.6,85.6L124.9,84.0L125.7,76.8L124.1,73.5L124.8,67.9L127.2,64.9L133.3,71.0L139.8,73.8L143.3,73.9L144.3,75.9L147.2,76.6L148.1,81.1L149.6,81.2L147.9,91.6L149.2,91.4L149.2,87.0L150.7,83.1L153.8,79.5L152.7,77.4L153.4,74.5L153.1,70.9L154.4,68.7L154.4,65.8L152.6,64.9L151.4,62.3L152.4,60.5L221.2,78.2ZM149.4,72.9L151.2,72.6L149.9,76.1L148.3,74.2L149.4,72.9ZM147.1,66.9L149.1,65.0L150.0,68.3L148.8,70.6L146.2,69.1L147.1,66.9Z"
+	},
+	{
+		id: "WI",
+		name: "Wisconsin",
+		d: "M551.9,149.9L554.3,150.9L556.0,153.9L569.5,156.8L575.2,159.1L576.9,158.4L582.6,159.8L587.2,164.0L587.3,167.3L586.3,169.9L589.4,170.1L588.4,172.8L590.6,174.6L590.3,176.9L587.8,177.5L585.5,185.0L587.0,185.4L590.8,179.4L593.4,177.7L595.1,172.8L597.7,171.6L597.7,174.0L596.1,176.4L593.1,184.5L592.8,192.0L591.5,193.1L590.7,197.4L591.4,201.0L589.3,209.4L590.1,214.0L592.1,217.9L592.0,223.4L553.3,225.9L552.2,223.6L547.2,221.7L545.4,214.6L546.9,212.2L544.8,210.5L543.6,205.6L543.9,202.6L541.1,198.6L538.9,198.0L535.0,195.0L534.2,192.6L530.1,190.7L528.6,188.7L525.8,188.5L522.2,185.2L522.5,175.2L524.0,172.3L522.2,170.0L520.7,169.8L520.8,167.1L523.7,163.1L527.3,161.4L528.1,160.2L527.6,149.2L530.2,147.6L531.2,148.4L534.1,148.4L546.1,143.0L547.3,144.2L545.6,146.8L550.0,149.7L551.9,149.9Z"
+	},
+	{
+		id: "WV",
+		name: "West Virginia",
+		d: "M696.6,245.5L699.3,262.5L713.9,260.0L715.5,269.6L717.9,267.4L720.2,263.8L722.1,264.0L724.4,260.8L728.8,261.3L728.9,259.2L731.3,258.9L732.3,257.2L735.0,258.5L737.4,258.0L740.0,262.9L739.1,266.7L730.6,261.9L730.9,267.6L725.7,276.3L723.6,275.0L721.8,282.1L720.6,283.9L718.1,283.5L715.2,281.4L714.9,285.9L708.8,299.8L709.3,303.2L707.0,305.2L706.3,304.2L700.3,308.8L696.7,310.4L694.4,308.8L692.0,311.7L690.2,312.1L687.5,310.9L685.0,308.0L685.0,306.5L683.0,306.4L680.0,304.7L678.9,302.7L676.2,300.2L674.0,296.9L673.6,291.2L677.3,290.3L677.5,287.7L679.1,286.5L677.9,283.7L679.9,278.8L682.5,281.4L683.7,279.4L683.0,277.3L684.2,273.5L685.9,273.3L687.1,270.4L688.8,271.4L690.5,270.3L695.0,263.4L695.2,256.4L696.4,251.6L696.0,248.7L694.7,246.9L696.6,245.5Z"
+	},
+	{
+		id: "WY",
+		name: "Wyoming",
+		d: "M308.0,169.4L373.8,176.8L367.6,251.5L313.8,245.8L270.5,239.8L282.3,165.5L308.0,169.4Z"
+	}
+];
+/* map_projection.js - Albers Equal-Area Conic projection for continental US */
+
+// Single source of truth for projection parameters
+// These match the standard D3 Albers USA projection
+var ALBERS_CONFIG = {
+	phi1: 29.5,    // first standard parallel (degrees)
+	phi2: 45.5,    // second standard parallel (degrees)
+	phi0: 23.0,    // center latitude (degrees)
+	lam0: -96.0,   // center longitude (degrees)
+	scale: 1070,
+	translateX: 480,
+	translateY: 593,
+};
+
+//============================================
+function albersProjection(lat, lon) {
+	// Convert lat/lon (decimal degrees) to SVG x,y coordinates
+	// using Albers Equal-Area Conic projection
+	// Returns [x, y] array, or null if projection fails
+
+	// Convert degrees to radians
+	var phi = lat * Math.PI / 180;
+	var lambda = lon * Math.PI / 180;
+
+	// Reference parallels and center point in radians
+	var phi1 = ALBERS_CONFIG.phi1 * Math.PI / 180;
+	var phi2 = ALBERS_CONFIG.phi2 * Math.PI / 180;
+	var phi0 = ALBERS_CONFIG.phi0 * Math.PI / 180;
+	var lam0 = ALBERS_CONFIG.lam0 * Math.PI / 180;
+
+	// Albers conic equal-area projection math
+	// Based on Snyder, Map Projections - A Working Manual
+
+	var n = (Math.sin(phi1) + Math.sin(phi2)) / 2;
+	var C = Math.cos(phi1) * Math.cos(phi1) + 2 * n * Math.sin(phi1);
+	var rho0 = Math.sqrt(C - 2 * n * Math.sin(phi0)) / n;
+
+	var rho = Math.sqrt(C - 2 * n * Math.sin(phi)) / n;
+	var theta = n * (lambda - lam0);
+
+	// Calculate raw projection coordinates
+	var x = rho * Math.sin(theta);
+	var y = rho0 - rho * Math.cos(theta);
+
+	// Apply scale and translate to fit 960x600 viewBox
+	var svgX = ALBERS_CONFIG.translateX + x * ALBERS_CONFIG.scale;
+	// negate y because SVG y-axis points downward but Albers y increases northward
+	var svgY = ALBERS_CONFIG.translateY - y * ALBERS_CONFIG.scale;
+
+	return [svgX, svgY];
+}
+
+//============================================
+function testProjection() {
+	// Test with known US cities
+	var los_angeles = albersProjection(34.05, -118.24);
+	var new_york = albersProjection(40.71, -74.01);
+	var miami = albersProjection(25.76, -80.19);
+
+	console.log("Albers Projection Test:");
+	console.log("Los Angeles (34.05, -118.24):", los_angeles);
+	console.log("New York (40.71, -74.01):", new_york);
+	console.log("Miami (25.76, -80.19):", miami);
+}
+// game_state.js - Game state machine and scoring engine
+// Manages the game state object and provides functions for the game loop.
+// Does NOT touch the DOM - that's handled by game_ui.js and game_play.js
+
+//============================================
+// Game state object
+var gameState = {
+	screen: "setup",        // "setup" | "playing" | "revealed" | "results"
+	schools: [],            // shuffled filtered school list (full cycle)
+	remaining: [],          // shortNames not yet asked (sidebar display)
+	currentIndex: 0,        // which question (0-based)
+	totalQuestions: 0,      // schools.length
+	currentSchool: null,    // school being asked about
+	currentAttempt: 0,      // 1, 2, or 3 (current attempt number)
+	clickedSchools: [],     // schools clicked this question (1-3 entries)
+	distancesMiles: [],     // distance of each wrong guess in miles
+	scores: [],             // score per question
+	answers: [],            // full answer records
+	conferences: [],        // selected conferences
+	startTime: 0,           // Date.now() when round started
+	elapsedMs: 0,           // running elapsed time
+	timerPaused: false,     // true during feedback display
+	timerInterval: null,    // setInterval reference
+};
+
+//============================================
+// Initialize game with selected conferences
+function startGame(conferences) {
+	// Filter NCAA_SCHOOLS by selected conferences
+	var filtered = NCAA_SCHOOLS.filter(function(school) {
+		return conferences.indexOf(school.conference) !== -1;
+	});
+
+	// Shuffle the filtered list (Fisher-Yates)
+	shuffleArray(filtered);
+
+	// Initialize all state fields
+	gameState.screen = "setup";
+	gameState.schools = filtered;
+	gameState.conferences = conferences;
+	gameState.currentIndex = -1;
+	gameState.totalQuestions = filtered.length;
+	gameState.currentSchool = null;
+	gameState.currentAttempt = 0;
+	gameState.clickedSchools = [];
+	gameState.distancesMiles = [];
+	gameState.scores = [];
+	gameState.answers = [];
+	gameState.timerPaused = false;
+	gameState.startTime = Date.now();
+	gameState.elapsedMs = 0;
+
+	// Build remaining[] from shortNames
+	gameState.remaining = filtered.map(function(school) {
+		return school.shortName;
+	});
+
+	// Start the elapsed timer (setInterval updating elapsedMs every 100ms)
+	gameState.timerInterval = setInterval(function() {
+		if (!gameState.timerPaused) {
+			gameState.elapsedMs = Date.now() - gameState.startTime;
+		}
+	}, 100);
+
+	// Set screen to "playing" and advance to first question
+	gameState.screen = "playing";
+	nextQuestion();
+
+	return gameState;
+}
+
+//============================================
+// Advance to next question
+function nextQuestion() {
+	// Advance currentIndex
+	gameState.currentIndex += 1;
+
+	// If game is over, return null
+	if (gameState.currentIndex >= gameState.totalQuestions) {
+		return null;
+	}
+
+	// Set currentSchool to schools[currentIndex]
+	gameState.currentSchool = gameState.schools[gameState.currentIndex];
+
+	// Reset currentAttempt to 1, clickedSchools to [], distancesMiles to []
+	gameState.currentAttempt = 1;
+	gameState.clickedSchools = [];
+	gameState.distancesMiles = [];
+
+	// Remove currentSchool.shortName from remaining[]
+	var idx = gameState.remaining.indexOf(gameState.currentSchool.shortName);
+	if (idx !== -1) {
+		gameState.remaining.splice(idx, 1);
+	}
+
+	return gameState.currentSchool;
+}
+
+//============================================
+// Record an attempt for the current question
+function recordAttempt(clickedSchool) {
+	// Add clickedSchool to clickedSchools
+	gameState.clickedSchools.push(clickedSchool);
+
+	// If wrong: compute distance in miles using haversineDistance(), add to distancesMiles
+	var correct = (clickedSchool.shortName === gameState.currentSchool.shortName);
+	if (!correct) {
+		var distance = haversineDistance(
+			gameState.currentSchool.lat,
+			gameState.currentSchool.lon,
+			clickedSchool.lat,
+			clickedSchool.lon
+		);
+		gameState.distancesMiles.push(distance);
+	}
+
+	// Increment currentAttempt
+	gameState.currentAttempt += 1;
+
+	return {
+		correct: correct,
+		attemptsUsed: gameState.clickedSchools.length
+	};
+}
+
+//============================================
+// Score the answer after correct or 3 misses
+function scoreAnswer() {
+	var score = 0;
+
+	// Determine if correct answer was clicked
+	var correct = false;
+	for (var i = 0; i < gameState.clickedSchools.length; i++) {
+		if (gameState.clickedSchools[i].shortName === gameState.currentSchool.shortName) {
+			correct = true;
+			break;
+		}
+	}
+
+	// Compute score based on attempt number
+	if (correct) {
+		// Find which attempt was correct by matching shortName
+		var attemptNum = gameState.clickedSchools.length;
+		if (attemptNum === 1) {
+			score = 1000;
+		} else if (attemptNum === 2) {
+			score = 667;
+		} else if (attemptNum === 3) {
+			score = 333;
+		}
+	} else {
+		// All 3 wrong - compute partial credit
+		var minDistance = Math.min.apply(null, gameState.distancesMiles);
+		score = missPartialCredit(minDistance);
+	}
+
+	// Build answer record and push to answers[]
+	var answerRecord = {
+		school: gameState.currentSchool,
+		attempts: gameState.clickedSchools.length,
+		clickedSchools: gameState.clickedSchools.slice(),
+		distancesMiles: gameState.distancesMiles.slice(),
+		score: score,
+		correct: correct
+	};
+	gameState.answers.push(answerRecord);
+
+	// Push score to scores[]
+	gameState.scores.push(score);
+
+	// Pause timer
+	pauseTimer();
+
+	// Set screen to "revealed"
+	gameState.screen = "revealed";
+
+	return answerRecord;
+}
+
+//============================================
+// Resume timer and advance to next question or results
+function advanceAfterReveal() {
+	// Resume timer (if not last question)
+	if (!isGameOver()) {
+		resumeTimer();
+	}
+
+	// If isGameOver(): set screen to "results", stop timer, return null
+	if (isGameOver()) {
+		gameState.screen = "results";
+		stopTimer();
+		return null;
+	}
+
+	// Otherwise: set screen to "playing", call nextQuestion(), return currentSchool
+	gameState.screen = "playing";
+	return nextQuestion();
+}
+
+//============================================
+// Check if game is over
+function isGameOver() {
+	// Game is over when we have answered all questions
+	return gameState.answers.length >= gameState.totalQuestions;
+}
+
+//============================================
+// Get final results
+function getResults() {
+	var totalScore = 0;
+	for (var i = 0; i < gameState.scores.length; i++) {
+		totalScore += gameState.scores[i];
+	}
+
+	return {
+		scores: gameState.scores,
+		answers: gameState.answers,
+		totalScore: totalScore,
+		totalQuestions: gameState.totalQuestions,
+		elapsedMs: gameState.elapsedMs,
+		conferences: gameState.conferences
+	};
+}
+
+//============================================
+// Compute partial credit for all wrong answers
+function missPartialCredit(minDistanceMiles) {
+	// If minDistanceMiles >= 200: return 0
+	if (minDistanceMiles >= 200) {
+		return 0;
+	}
+	// Otherwise: return rounded credit based on distance
+	return Math.round(200 * (1 - minDistanceMiles / 200));
+}
+
+//============================================
+// Haversine distance formula
+function haversineDistance(lat1, lon1, lat2, lon2) {
+	// Convert to radians
+	var toRad = Math.PI / 180;
+	var lat1Rad = lat1 * toRad;
+	var lon1Rad = lon1 * toRad;
+	var lat2Rad = lat2 * toRad;
+	var lon2Rad = lon2 * toRad;
+
+	// Differences
+	var dLat = lat2Rad - lat1Rad;
+	var dLon = lon2Rad - lon1Rad;
+
+	// Haversine formula
+	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+			Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	var c = 2 * Math.asin(Math.sqrt(a));
+
+	// Earth radius in miles = 3959
+	var R = 3959;
+	var distance = R * c;
+
+	return distance;
+}
+
+//============================================
+// Fisher-Yates shuffle
+function shuffleArray(arr) {
+	for (var i = arr.length - 1; i > 0; i--) {
+		// Random index from 0 to i
+		var j = Math.floor(Math.random() * (i + 1));
+
+		// Swap arr[i] and arr[j]
+		var temp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = temp;
+	}
+	return arr;
+}
+
+//============================================
+// Timer helper functions
+function pauseTimer() {
+	gameState.timerPaused = true;
+}
+
+function resumeTimer() {
+	gameState.timerPaused = false;
+}
+
+function stopTimer() {
+	if (gameState.timerInterval) {
+		clearInterval(gameState.timerInterval);
+		gameState.timerInterval = null;
+	}
+	gameState.elapsedMs = Date.now() - gameState.startTime;
+}
+
+//============================================
+// Format elapsed time as "M:SS"
+function getElapsedFormatted() {
+	var totalSeconds = Math.floor(gameState.elapsedMs / 1000);
+	var minutes = Math.floor(totalSeconds / 60);
+	var seconds = totalSeconds % 60;
+
+	// Pad seconds with leading zero if needed
+	var secondsStr = seconds < 10 ? "0" + seconds : String(seconds);
+
+	return minutes + ":" + secondsStr;
+}
+
+//============================================
+// Simple assertion tests
+var _testCredit = missPartialCredit(0);
+console.assert(_testCredit === 200, "missPartialCredit(0) should be 200, got " + _testCredit);
+var _testCredit2 = missPartialCredit(100);
+console.assert(_testCredit2 === 100, "missPartialCredit(100) should be 100, got " + _testCredit2);
+var _testCredit3 = missPartialCredit(200);
+console.assert(_testCredit3 === 0, "missPartialCredit(200) should be 0, got " + _testCredit3);
+var _testCredit4 = missPartialCredit(300);
+console.assert(_testCredit4 === 0, "missPartialCredit(300) should be 0, got " + _testCredit4);
+// ============================================
+// NCAA School Find Game - UI Rendering Logic
+// ============================================
+// Handles screen transitions, map rendering, dot states,
+// zoom circle animation, and map labels.
+
+// Track which school indices have been correctly answered
+var correctlyAnsweredIndices = {};
+
+// Store projected coordinates for each school (computed once in renderMap)
+var projectedCoords = [];
+
+// ============================================
+// Color Accessibility
+// ============================================
+
+//============================================
+function hexToRgb(hex) {
+	// Parse "#RRGGBB" to [r, g, b] in 0-255
+	var result = /^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/.exec(hex);
+	if (!result) {
+		return [0, 0, 0];
+	}
+	return [
+		parseInt(result[1], 16),
+		parseInt(result[2], 16),
+		parseInt(result[3], 16)
+	];
+}
+
+//============================================
+function getRelativeLuminance(hex) {
+	// WCAG 2.0 relative luminance
+	var rgb = hexToRgb(hex);
+	var channels = rgb.map(function(c) {
+		var srgb = c / 255;
+		if (srgb <= 0.04045) {
+			return srgb / 12.92;
+		}
+		return Math.pow((srgb + 0.055) / 1.055, 2.4);
+	});
+	return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+//============================================
+function getContrastRatio(hex1, hex2) {
+	var l1 = getRelativeLuminance(hex1);
+	var l2 = getRelativeLuminance(hex2);
+	var lighter = Math.max(l1, l2);
+	var darker = Math.min(l1, l2);
+	return (lighter + 0.05) / (darker + 0.05);
+}
+
+//============================================
+function getDotColor(school) {
+	// Pick the school color that has better contrast on the map background (#d4dae0)
+	var mapBg = "#d4dae0";
+	var primaryContrast = getContrastRatio(school.colorPrimary, mapBg);
+	var secondaryContrast = getContrastRatio(school.colorSecondary, mapBg);
+	// Need at least 3:1 for graphical elements per WCAG
+	if (primaryContrast >= 3.0) {
+		return school.colorPrimary;
+	}
+	if (secondaryContrast >= 3.0) {
+		return school.colorSecondary;
+	}
+	// Fallback: darken by returning black
+	return "#333333";
+}
+
+// ============================================
+// Screen Management
+// ============================================
+
+//============================================
+function showScreen(screenName) {
+	var screens = ["setup", "game", "results"];
+	screens.forEach(function(name) {
+		var el = document.getElementById(name + "-screen");
+		if (el) {
+			el.style.display = (name === screenName) ? "flex" : "none";
+		}
+	});
+}
+
+//============================================
+function showSetupScreen() {
+	showScreen("setup");
+	// Reset checkboxes to checked
+	var checkboxes = document.querySelectorAll(".conference-checkbox");
+	checkboxes.forEach(function(cb) {
+		cb.checked = true;
+	});
+	// Reset answered tracking
+	correctlyAnsweredIndices = {};
+	projectedCoords = [];
+}
+
+// ============================================
+// Map Rendering
+// ============================================
+
+//============================================
+function renderMap(schools) {
+	var statesGroup = document.getElementById("states");
+	var dotsGroup = document.getElementById("school-dots");
+	var labelsGroup = document.getElementById("map-labels");
+
+	// Clear everything
+	if (statesGroup) {
+		statesGroup.innerHTML = "";
+	}
+	if (dotsGroup) {
+		dotsGroup.innerHTML = "";
+	}
+	if (labelsGroup) {
+		labelsGroup.innerHTML = "";
+	}
+
+	// Reset tracking
+	correctlyAnsweredIndices = {};
+	projectedCoords = [];
+
+	// Render state outlines
+	if (statesGroup && US_STATE_PATHS) {
+		US_STATE_PATHS.forEach(function(state) {
+			var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			path.setAttribute("d", state.d);
+			path.setAttribute("class", "state-path");
+			statesGroup.appendChild(path);
+		});
+	}
+
+	// Project all school coordinates and detect overlaps
+	var coordsList = [];
+	schools.forEach(function(school) {
+		var coords = albersProjection(school.lat, school.lon);
+		coordsList.push({ x: coords[0], y: coords[1] });
+	});
+
+	// Jitter overlapping dots (schools within 8px of each other)
+	for (var i = 0; i < coordsList.length; i++) {
+		for (var j = i + 1; j < coordsList.length; j++) {
+			var dx = coordsList[j].x - coordsList[i].x;
+			var dy = coordsList[j].y - coordsList[i].y;
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist < 8) {
+				// Push them apart along the line between them
+				var angle = Math.atan2(dy, dx);
+				var push = (8 - dist) / 2 + 2;
+				coordsList[i].x -= Math.cos(angle) * push;
+				coordsList[i].y -= Math.sin(angle) * push;
+				coordsList[j].x += Math.cos(angle) * push;
+				coordsList[j].y += Math.sin(angle) * push;
+			}
+		}
+	}
+
+	// Store projected coords for later use
+	projectedCoords = coordsList;
+
+	// Render dots - all start as gray (unanswered)
+	if (dotsGroup) {
+		schools.forEach(function(school, idx) {
+			var x = coordsList[idx].x;
+			var y = coordsList[idx].y;
+
+			var group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+			group.setAttribute("class", "school-dot-group");
+			group.setAttribute("data-school-index", idx);
+
+			// Hit-area circle (larger invisible target)
+			var hitCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			hitCircle.setAttribute("cx", x);
+			hitCircle.setAttribute("cy", y);
+			hitCircle.setAttribute("r", "12");
+			hitCircle.setAttribute("class", "hit-area");
+
+			// Visible dot - starts gray
+			var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			dot.setAttribute("cx", x);
+			dot.setAttribute("cy", y);
+			dot.setAttribute("r", "5");
+			dot.setAttribute("class", "visible-dot");
+			dot.setAttribute("fill", "#999");
+
+			group.appendChild(hitCircle);
+			group.appendChild(dot);
+			dotsGroup.appendChild(group);
+		});
+	}
+}
+
+// ============================================
+// Dot State Updates
+// ============================================
+
+//============================================
+function markDotAnswered(schoolIndex, schools) {
+	// Mark a dot as correctly answered - change to school color
+	correctlyAnsweredIndices[schoolIndex] = true;
+	var group = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
+	if (group) {
+		var dot = group.querySelector(".visible-dot");
+		if (dot) {
+			var color = getDotColor(schools[schoolIndex]);
+			dot.setAttribute("fill", color);
+			dot.setAttribute("r", "6");
+		}
+		// Disable hover/click styling for answered dots
+		group.classList.add("dot-answered");
+	}
+}
+
+//============================================
+function markDotCorrect(schoolIndex) {
+	var group = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
+	if (group) {
+		group.classList.add("dot-correct");
+	}
+}
+
+//============================================
+function markDotWrong(schoolIndex) {
+	var group = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
+	if (group) {
+		group.classList.add("dot-wrong");
+	}
+}
+
+//============================================
+function clearHighlights() {
+	// Remove temporary highlight classes (not dot-answered which is permanent)
+	var groups = document.querySelectorAll(".school-dot-group");
+	groups.forEach(function(group) {
+		group.classList.remove("dot-wrong");
+		group.classList.remove("dot-correct");
+		group.classList.remove("dot-region-hint");
+	});
+	// Hide feedback line
+	var feedbackLine = document.getElementById("feedback-line");
+	if (feedbackLine) {
+		feedbackLine.style.display = "none";
+	}
+	// Clear map labels
+	var labelsGroup = document.getElementById("map-labels");
+	if (labelsGroup) {
+		labelsGroup.innerHTML = "";
+	}
+	// Hide zoom circle
+	var zoomCircle = document.getElementById("zoom-circle");
+	if (zoomCircle) {
+		zoomCircle.classList.remove("animate");
+		zoomCircle.setAttribute("opacity", "0");
+	}
+}
+
+// ============================================
+// Zoom Circle Animation (Seterra-style)
+// ============================================
+
+//============================================
+function showZoomCircle(schoolIndex) {
+	// Animated expanding ring on the correct dot location
+	if (!projectedCoords[schoolIndex]) {
+		return;
+	}
+	var x = projectedCoords[schoolIndex].x;
+	var y = projectedCoords[schoolIndex].y;
+	var zoomCircle = document.getElementById("zoom-circle");
+	if (zoomCircle) {
+		zoomCircle.setAttribute("cx", x);
+		zoomCircle.setAttribute("cy", y);
+		zoomCircle.setAttribute("r", "6");
+		zoomCircle.setAttribute("opacity", "1");
+		// Trigger animation by removing and re-adding class
+		zoomCircle.classList.remove("animate");
+		// Force reflow
+		void zoomCircle.offsetWidth;
+		zoomCircle.classList.add("animate");
+	}
+}
+
+// ============================================
+// Map Labels (show school name near dot)
+// ============================================
+
+//============================================
+function showMapLabel(schoolIndex, text, color, schools) {
+	// Add a text label near a dot on the map
+	var labelsGroup = document.getElementById("map-labels");
+	if (!labelsGroup || !projectedCoords[schoolIndex]) {
+		return;
+	}
+	var x = projectedCoords[schoolIndex].x;
+	var y = projectedCoords[schoolIndex].y;
+
+	// Background rect + text for readability
+	var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+	g.setAttribute("class", "map-label-group");
+
+	// Create text first to measure it
+	var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+	label.setAttribute("x", x + 10);
+	label.setAttribute("y", y - 8);
+	label.setAttribute("class", "map-label");
+	label.setAttribute("fill", color);
+	label.textContent = text;
+
+	// White background behind text
+	var bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+	bg.setAttribute("x", x + 7);
+	bg.setAttribute("y", y - 20);
+	bg.setAttribute("width", text.length * 7 + 6);
+	bg.setAttribute("height", "16");
+	bg.setAttribute("rx", "2");
+	bg.setAttribute("fill", "white");
+	bg.setAttribute("opacity", "0.85");
+
+	g.appendChild(bg);
+	g.appendChild(label);
+	labelsGroup.appendChild(g);
+}
+
+// ============================================
+// Feedback Line
+// ============================================
+
+//============================================
+function showFeedbackLine(fromSchoolIndex, toSchoolIndex, schools) {
+	if (!projectedCoords[fromSchoolIndex] || !projectedCoords[toSchoolIndex]) {
+		return;
+	}
+	var feedbackLine = document.getElementById("feedback-line");
+	if (feedbackLine) {
+		feedbackLine.setAttribute("x1", projectedCoords[fromSchoolIndex].x);
+		feedbackLine.setAttribute("y1", projectedCoords[fromSchoolIndex].y);
+		feedbackLine.setAttribute("x2", projectedCoords[toSchoolIndex].x);
+		feedbackLine.setAttribute("y2", projectedCoords[toSchoolIndex].y);
+		feedbackLine.style.display = "block";
+	}
+}
+
+// ============================================
+// Region Hints
+// ============================================
+
+//============================================
+function highlightRegionDots(hintRegion, schools) {
+	var regionStates = SUBREGIONS[hintRegion] || [];
+	var regionStatesSet = {};
+	regionStates.forEach(function(state) {
+		regionStatesSet[state] = true;
+	});
+
+	var groups = document.querySelectorAll(".school-dot-group");
+	groups.forEach(function(group) {
+		var idx = parseInt(group.getAttribute("data-school-index"), 10);
+		var school = schools[idx];
+		// Only highlight unanswered dots in the region
+		if (school && regionStatesSet[school.state] && !correctlyAnsweredIndices[idx]) {
+			group.classList.add("dot-region-hint");
+		}
+	});
+}
+
+// ============================================
+// School Color Theming (minimal - topbar is fixed dark)
+// ============================================
+
+//============================================
+function applySchoolColors(school) {
+	// Topbar is fixed dark gray - no theming needed there
+	// Just update the school name pill background with accessible color
+	var nameEl = document.getElementById("question-text");
+	if (nameEl) {
+		nameEl.textContent = school.name;
+	}
+}
+
+// ============================================
+// Score and Progress Display
+// ============================================
+
+//============================================
+function updateScoreDisplay() {
+	// Score as percentage
+	var scoreDisplay = document.getElementById("score-display");
+	if (scoreDisplay && gameState.totalQuestions > 0) {
+		var total = 0;
+		for (var i = 0; i < gameState.scores.length; i++) {
+			total += gameState.scores[i];
+		}
+		var maxPossible = gameState.answers.length * 1000;
+		var pct = maxPossible > 0 ? Math.round((total / maxPossible) * 100) : 0;
+		scoreDisplay.textContent = pct + "%";
+	}
+
+	// Progress: "3/16"
+	var progressDisplay = document.getElementById("progress-display");
+	if (progressDisplay) {
+		var answered = gameState.answers.length;
+		var totalQ = gameState.totalQuestions;
+		progressDisplay.textContent = answered + "/" + totalQ;
+	}
+
+	// Timer
+	var timerDisplay = document.getElementById("timer-display");
+	if (timerDisplay) {
+		timerDisplay.textContent = getElapsedFormatted();
+	}
+}
+
+// ============================================
+// Results Screen
+// ============================================
+
+//============================================
+function showResultsScreen(results) {
+	showScreen("results");
+
+	var totalScoreEl = document.getElementById("results-total-score");
+	if (totalScoreEl) {
+		totalScoreEl.textContent = results.totalScore;
+	}
+
+	var timeEl = document.getElementById("results-time");
+	if (timeEl) {
+		var totalSec = Math.floor(results.elapsedMs / 1000);
+		var min = Math.floor(totalSec / 60);
+		var sec = totalSec % 60;
+		timeEl.textContent = min + ":" + (sec < 10 ? "0" : "") + sec;
+	}
+
+	var countEl = document.getElementById("results-count");
+	if (countEl) {
+		var correct = 0;
+		for (var i = 0; i < results.answers.length; i++) {
+			if (results.answers[i].correct) {
+				correct++;
+			}
+		}
+		countEl.textContent = correct + "/" + results.totalQuestions;
+	}
+
+	// Build results table body
+	var tableBody = document.querySelector("#results-table tbody");
+	if (tableBody) {
+		tableBody.innerHTML = "";
+		results.answers.forEach(function(answer) {
+			var row = document.createElement("tr");
+			// Color-code by attempt count
+			var attempts = answer.clickedSchools ? answer.clickedSchools.length : 0;
+			if (answer.correct && attempts === 1) {
+				row.className = "result-attempt-1";
+			} else if (answer.correct && attempts === 2) {
+				row.className = "result-attempt-2";
+			} else if (answer.correct && attempts === 3) {
+				row.className = "result-attempt-3";
+			} else {
+				row.className = "result-missed";
+			}
+
+			var nameCell = document.createElement("td");
+			nameCell.textContent = answer.school.shortName;
+			row.appendChild(nameCell);
+
+			var attemptsCell = document.createElement("td");
+			attemptsCell.textContent = answer.correct ? attempts : "missed";
+			row.appendChild(attemptsCell);
+
+			var timeCell = document.createElement("td");
+			timeCell.textContent = "-";
+			row.appendChild(timeCell);
+
+			var scoreCell = document.createElement("td");
+			scoreCell.textContent = answer.score;
+			row.appendChild(scoreCell);
+
+			tableBody.appendChild(row);
+		});
+	}
+}
+
+// ============================================
+// Hover Tooltip (shows school name on dot hover)
+// ============================================
+
+//============================================
+function updateCursorLabel(svgX, svgY) {
+	// Move the current question label to follow the mouse on the map
+	var currentSchool = gameState.currentSchool;
+	if (!currentSchool) {
+		return;
+	}
+
+	var tooltipGroup = document.getElementById("hover-tooltip");
+	var tooltipText = document.getElementById("hover-tooltip-text");
+	var tooltipBg = document.getElementById("hover-tooltip-bg");
+	if (!tooltipGroup || !tooltipText || !tooltipBg) {
+		return;
+	}
+
+	var labelText = currentSchool.shortName;
+	var textWidth = labelText.length * 7.2 + 10;
+
+	// Position label offset below-right of cursor
+	var textX = svgX + 16;
+	var textY = svgY + 20;
+
+	// Clamp to stay within the 960x600 viewBox
+	if (textX + textWidth > 955) {
+		textX = svgX - textWidth - 6;
+	}
+	if (textY > 590) {
+		textY = svgY - 10;
+	}
+
+	// Update text content and position
+	tooltipText.textContent = labelText;
+	tooltipText.setAttribute("x", textX + 5);
+	tooltipText.setAttribute("y", textY);
+
+	// Update background rectangle
+	tooltipBg.setAttribute("x", textX);
+	tooltipBg.setAttribute("y", textY - 13);
+	tooltipBg.setAttribute("width", textWidth);
+	tooltipBg.setAttribute("height", 18);
+
+	// Show the tooltip group
+	tooltipGroup.style.display = "block";
+}
+
+//============================================
+function hideCursorLabel() {
+	// Hide the cursor-following label
+	var tooltipGroup = document.getElementById("hover-tooltip");
+	if (tooltipGroup) {
+		tooltipGroup.style.display = "none";
+	}
+}
+
+// ============================================
+// School List Sidebar
+// ============================================
+
+// Store sorted index mapping for sidebar (computed once per game)
+var sidebarSortedIndices = [];
+
+//============================================
+function initSidebar(schools) {
+	// Build alphabetically sorted index list and populate sidebar
+	sidebarSortedIndices = [];
+	for (var i = 0; i < schools.length; i++) {
+		sidebarSortedIndices.push(i);
+	}
+	// Sort by shortName alphabetically
+	sidebarSortedIndices.sort(function(a, b) {
+		var nameA = schools[a].shortName.toLowerCase();
+		var nameB = schools[b].shortName.toLowerCase();
+		if (nameA < nameB) {
+			return -1;
+		}
+		if (nameA > nameB) {
+			return 1;
+		}
+		return 0;
+	});
+
+	// Build the list HTML
+	var listEl = document.getElementById("remaining-list");
+	if (!listEl) {
+		return;
+	}
+	listEl.innerHTML = "";
+
+	for (var j = 0; j < sidebarSortedIndices.length; j++) {
+		var idx = sidebarSortedIndices[j];
+		var school = schools[idx];
+		var li = document.createElement("li");
+		li.setAttribute("data-school-index", idx);
+		li.setAttribute("id", "sidebar-item-" + idx);
+		li.textContent = school.shortName;
+		listEl.appendChild(li);
+	}
+}
+
+//============================================
+function updateRemainingList(remaining, schools) {
+	// Update sidebar to reflect current game state
+	if (!schools || schools.length === 0) {
+		return;
+	}
+
+	var currentName = gameState.currentSchool ? gameState.currentSchool.shortName : "";
+
+	for (var i = 0; i < schools.length; i++) {
+		var li = document.getElementById("sidebar-item-" + i);
+		if (!li) {
+			continue;
+		}
+
+		// Clear previous state classes
+		li.classList.remove("sidebar-current", "sidebar-answered");
+		li.innerHTML = "";
+
+		var school = schools[i];
+
+		if (correctlyAnsweredIndices[i]) {
+			// Answered: strikethrough + school color dot
+			li.classList.add("sidebar-answered");
+			var dot = document.createElement("span");
+			dot.className = "sidebar-dot";
+			dot.style.backgroundColor = getDotColor(school);
+			li.appendChild(dot);
+			var text = document.createTextNode(school.shortName);
+			li.appendChild(text);
+		} else if (school.shortName === currentName) {
+			// Current question: highlighted
+			li.classList.add("sidebar-current");
+			li.textContent = school.shortName;
+		} else {
+			// Unanswered
+			li.textContent = school.shortName;
+		}
+	}
+
+	// Scroll current item into view
+	if (gameState.currentSchool) {
+		var currentIndex = -1;
+		for (var k = 0; k < schools.length; k++) {
+			if (schools[k].shortName === gameState.currentSchool.shortName) {
+				currentIndex = k;
+				break;
+			}
+		}
+		if (currentIndex !== -1) {
+			var currentLi = document.getElementById("sidebar-item-" + currentIndex);
+			if (currentLi) {
+				currentLi.scrollIntoView({ block: "nearest", behavior: "smooth" });
+			}
+		}
+	}
+}
+// game_play.js - Core gameplay loop with three-attempt mechanic
+// Handles dot clicks, answer feedback, and progression through the game.
+
+//============================================
+// Module-level state
+var dotClicksEnabled = true;
+var updateScoreInterval = null;
+
+//============================================
+// Show the next question on screen
+function showNextQuestion() {
+	var school = gameState.currentSchool;
+	if (!school) {
+		return;
+	}
+
+	// Update the school name in the topbar
+	applySchoolColors(school);
+
+	// Update score display
+	updateScoreDisplay();
+
+	// Clear temporary highlights (keep answered dots colored)
+	clearHighlights();
+
+	// Clear feedback panel text
+	var feedbackPanel = document.getElementById("feedback-panel");
+	if (feedbackPanel) {
+		feedbackPanel.textContent = "";
+	}
+
+	// Update sidebar to reflect current question
+	updateRemainingList(gameState.remaining, gameState.schools);
+
+	// Enable dot clicking
+	setDotClicksEnabled(true);
+}
+
+//============================================
+// Handle dot click event
+function handleDotClick(event) {
+	if (!dotClicksEnabled) {
+		return;
+	}
+
+	// Find the clicked school-dot-group
+	var group = event.target.closest(".school-dot-group");
+	if (!group) {
+		return;
+	}
+
+	var schoolIndex = parseInt(group.getAttribute("data-school-index"), 10);
+	if (isNaN(schoolIndex)) {
+		return;
+	}
+
+	// Skip clicks on already-answered dots
+	if (correctlyAnsweredIndices[schoolIndex]) {
+		return;
+	}
+
+	var clickedSchool = gameState.schools[schoolIndex];
+	if (!clickedSchool) {
+		return;
+	}
+
+	// Hide cursor label during click feedback
+	hideCursorLabel();
+
+	// Record this attempt
+	var result = recordAttempt(clickedSchool);
+	var correct = result.correct;
+	var attemptsUsed = result.attemptsUsed;
+
+	var feedbackPanel = document.getElementById("feedback-panel");
+	var currentSchool = gameState.currentSchool;
+
+	// Find the correct school's index for map labels and lines
+	var correctIndex = -1;
+	for (var i = 0; i < gameState.schools.length; i++) {
+		if (gameState.schools[i].shortName === currentSchool.shortName) {
+			correctIndex = i;
+			break;
+		}
+	}
+
+	// === CORRECT ANSWER ===
+	if (correct) {
+		scoreAnswer();
+
+		// Mark dot as permanently answered (school color)
+		markDotAnswered(schoolIndex, gameState.schools);
+
+		// Show zoom circle animation
+		showZoomCircle(schoolIndex);
+
+		// Show label on map near the dot
+		showMapLabel(schoolIndex, currentSchool.shortName, "#155724", gameState.schools);
+
+		// Show feedback
+		if (feedbackPanel) {
+			var scoreRecord = gameState.answers[gameState.answers.length - 1];
+			feedbackPanel.textContent = currentSchool.shortName + " - +" + scoreRecord.score;
+		}
+
+		// Auto-advance
+		setDotClicksEnabled(false);
+		handleNextButton();
+
+	// === FIRST WRONG ATTEMPT ===
+	} else if (attemptsUsed === 1) {
+		markDotWrong(schoolIndex);
+
+		// Show wrong school name as label on map near clicked dot
+		showMapLabel(schoolIndex, clickedSchool.shortName, "#721c24", gameState.schools);
+
+		if (feedbackPanel) {
+			feedbackPanel.textContent = "That is " + clickedSchool.shortName + ". Try again.";
+		}
+
+		// Remove wrong highlight after 800ms
+		setTimeout(function() {
+			var g = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
+			if (g) {
+				g.classList.remove("dot-wrong");
+			}
+			// Clear the label too
+			var labelsGroup = document.getElementById("map-labels");
+			if (labelsGroup) {
+				labelsGroup.innerHTML = "";
+			}
+		}, 800);
+
+	// === SECOND WRONG ATTEMPT ===
+	} else if (attemptsUsed === 2) {
+		markDotWrong(schoolIndex);
+
+		// Show wrong school name near clicked dot
+		showMapLabel(schoolIndex, clickedSchool.shortName, "#721c24", gameState.schools);
+
+		// Highlight region dots as hint
+		highlightRegionDots(currentSchool.hintRegion, gameState.schools);
+
+		if (feedbackPanel) {
+			feedbackPanel.textContent = "That is " + clickedSchool.shortName + ". Look in the " + currentSchool.hintRegion + ".";
+		}
+
+		// Remove wrong highlight after 800ms (keep region hint)
+		setTimeout(function() {
+			var g = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
+			if (g) {
+				g.classList.remove("dot-wrong");
+			}
+		}, 800);
+
+	// === THIRD WRONG ATTEMPT (ALL MISSED) ===
+	} else if (attemptsUsed === 3) {
+		scoreAnswer();
+
+		// Mark clicked dot wrong, correct dot answered
+		markDotWrong(schoolIndex);
+		if (correctIndex !== -1) {
+			markDotAnswered(correctIndex, gameState.schools);
+			showZoomCircle(correctIndex);
+		}
+
+		// Show both labels - wrong and correct
+		showMapLabel(schoolIndex, clickedSchool.shortName, "#721c24", gameState.schools);
+		if (correctIndex !== -1) {
+			showMapLabel(correctIndex, currentSchool.shortName, "#155724", gameState.schools);
+		}
+
+		// Draw line from wrong to correct
+		if (correctIndex !== -1) {
+			showFeedbackLine(schoolIndex, correctIndex, gameState.schools);
+		}
+
+		if (feedbackPanel) {
+			var scoreRecord = gameState.answers[gameState.answers.length - 1];
+			feedbackPanel.textContent = currentSchool.shortName + " was here. +" + scoreRecord.score;
+		}
+
+		// Auto-advance after brief pause so player can see correct location
+		setDotClicksEnabled(false);
+		setTimeout(handleNextButton, 2000);
+	}
+}
+
+//============================================
+function handleNextButton() {
+	// Clear temporary highlights (answered dots keep their color)
+	clearHighlights();
+
+	var result = advanceAfterReveal();
+
+	if (result === null) {
+		stopTimerUpdates();
+		var finalResults = getResults();
+		showResultsScreen(finalResults);
+	} else {
+		showNextQuestion();
+	}
+}
+
+//============================================
+function setDotClicksEnabled(enabled) {
+	dotClicksEnabled = enabled;
+}
+
+//============================================
+function startTimerUpdates() {
+	if (updateScoreInterval) {
+		clearInterval(updateScoreInterval);
+	}
+	updateScoreInterval = setInterval(function() {
+		if (gameState.screen === "playing" || gameState.screen === "revealed") {
+			updateScoreDisplay();
+		}
+	}, 200);
+}
+
+//============================================
+function stopTimerUpdates() {
+	if (updateScoreInterval) {
+		clearInterval(updateScoreInterval);
+		updateScoreInterval = null;
+	}
+}
+// init.js - Bootstrap the game on DOMContentLoaded
+// Wires up all event handlers and initializes the game.
+
+//============================================
+// Initialize game when DOM is ready
+document.addEventListener("DOMContentLoaded", function() {
+	// Show setup screen
+	showSetupScreen();
+
+	// Wire up start button click
+	var startButton = document.getElementById("start-button");
+	if (startButton) {
+		startButton.addEventListener("click", function() {
+			// Read checked conference checkboxes
+			var checkboxes = document.querySelectorAll(".conference-checkbox:checked");
+			var selectedConferences = [];
+			checkboxes.forEach(function(cb) {
+				selectedConferences.push(cb.value);
+			});
+
+			// Validate at least one conference is selected
+			if (selectedConferences.length === 0) {
+				alert("Select at least one conference");
+				return;
+			}
+
+			// Start the game
+			startGame(selectedConferences);
+
+			// Show game screen
+			showScreen("game");
+
+			// Render the map with all schools
+			renderMap(gameState.schools);
+
+			// Initialize the sidebar school list
+			initSidebar(gameState.schools);
+
+			// Show the first question
+			showNextQuestion();
+
+			// Start timer updates
+			startTimerUpdates();
+		});
+	}
+
+	// Wire up next button click
+	var nextButton = document.getElementById("next-button");
+	if (nextButton) {
+		nextButton.addEventListener("click", handleNextButton);
+	}
+
+	// Wire up play again button click
+	var playAgainButton = document.getElementById("play-again-button");
+	if (playAgainButton) {
+		playAgainButton.addEventListener("click", function() {
+			// Stop timer updates
+			stopTimerUpdates();
+
+			// Reset and show setup
+			showSetupScreen();
+		});
+	}
+
+	// Wire up click event delegation on school dots
+	var schoolDotsGroup = document.getElementById("school-dots");
+	if (schoolDotsGroup) {
+		schoolDotsGroup.addEventListener("click", handleDotClick);
+	}
+
+	// Cursor-following label: current question name tracks the mouse across the map
+	var gameMap = document.getElementById("game-map");
+	if (gameMap) {
+		gameMap.addEventListener("mousemove", function(event) {
+			// Convert page coordinates to SVG viewBox coordinates
+			var pt = gameMap.createSVGPoint();
+			pt.x = event.clientX;
+			pt.y = event.clientY;
+			var svgPt = pt.matrixTransform(gameMap.getScreenCTM().inverse());
+			updateCursorLabel(svgPt.x, svgPt.y);
+		});
+
+		gameMap.addEventListener("mouseleave", function() {
+			hideCursorLabel();
+		});
+	}
+
+	// Wire up keyboard handlers for Enter and Space
+	document.addEventListener("keydown", function(event) {
+		// Check if next-button is visible
+		var nextButton = document.getElementById("next-button");
+		if (nextButton && nextButton.style.display !== "none") {
+			// Enter or Space key
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				nextButton.click();
+			}
+		}
+	});
+});
+</script>
+</body>
+</html>

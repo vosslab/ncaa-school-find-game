@@ -1,3 +1,30 @@
+## 2026-03-26
+
+### Additions and New Features
+
+- Added hover tooltip on map dots: hovering an unanswered dot shows the current question school name (not the dot identity) in an SVG tooltip near the cursor. Acts as a reminder of what you are looking for. Uses event delegation on the `school-dots` group with `mouseover`/`mouseout` handlers. Tooltip auto-flips to avoid viewBox edges.
+- Enhanced dot hover CSS: unanswered dots now show a white stroke outline on hover in addition to the radius growth, using `stroke` and `stroke-width` transitions.
+- Restored Seterra-style school list sidebar on the left side of the game screen. Shows all schools sorted alphabetically. Current question is highlighted in blue with a left border accent. Answered schools show strikethrough text with a colored dot matching the school color. Sidebar auto-scrolls to the current question.
+- Added `initSidebar()` function in `parts/game_ui.js` to build the alphabetically sorted school list on game start.
+- Reimplemented `updateRemainingList()` in `parts/game_ui.js` (was a no-op) to update sidebar state on each question: highlights current, marks answered with strikethrough and school color dot.
+
+### Behavior or Interface Changes
+
+- Game screen layout changed from single-column map to flexbox row: 200px sidebar (left) + map (right, flex-grow). Sidebar hidden on screens narrower than 768px.
+- Added `<div class="game-body">` wrapper around sidebar and map in `parts/body.html` for the flex layout.
+
+## 2026-03-25
+
+### Additions and New Features
+
+- Added `parts/map_projection.js` with Albers Equal-Area Conic projection function for continental US, converting lat/lon (decimal degrees) to SVG coordinates fitting a 960x600 viewBox. Uses standard D3 Albers USA parameters (phi1=29.5, phi2=45.5, center at 23 degrees/-96 degrees).
+- Replaced placeholder SVG paths in `parts/map_data.js` with real state boundary data generated from GeoJSON (PublicaMundi/MappingAPI) projected through Albers Equal-Area Conic. Paths are simplified with Ramer-Douglas-Peucker (tolerance 0.5px) to keep file under 28KB. Covers 48 continental states plus DC.
+- Added `generate_map_paths.py` script that downloads US states GeoJSON, applies Albers projection, simplifies paths, and writes `parts/map_data.js`.
+
+### Fixes and Maintenance
+
+- Fixed Y-axis inversion in both `parts/map_projection.js` and `generate_map_paths.py`: Albers projection y increases northward but SVG y increases downward, so the formula now uses `translateY - y * scale` instead of `translateY + y * scale`. Updated `translateY` from 250 to 593 to re-center the map within the 960x600 viewBox.
+
 ## 2026-02-25
 
 ### Fixes and Maintenance

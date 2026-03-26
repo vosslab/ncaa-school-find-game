@@ -1,0 +1,93 @@
+<div id="setup-screen" class="screen-container">
+	<div class="setup-card">
+		<h1>NCAA School Find Game</h1>
+		<p class="subtitle">Find the school on the map!</p>
+
+		<div class="conference-selector">
+			<label><input type="checkbox" class="conference-checkbox" value="SEC" checked> SEC</label>
+			<label><input type="checkbox" class="conference-checkbox" value="Big Ten" checked> Big Ten</label>
+			<label><input type="checkbox" class="conference-checkbox" value="Big 12" checked> Big 12</label>
+			<label><input type="checkbox" class="conference-checkbox" value="ACC" checked> ACC</label>
+		</div>
+
+		<button id="start-button" class="button button-primary">Start Game</button>
+	</div>
+</div>
+
+<div id="game-screen" class="screen-container" style="display:none;">
+	<div class="game-topbar">
+		<span class="topbar-progress"><span id="progress-display">0/16</span> | <span id="score-display">0</span>%</span>
+		<span class="topbar-prompt">Click on <span id="question-text" class="topbar-school-name">Stanford</span></span>
+		<span class="topbar-timer" id="timer-display">00:00</span>
+	</div>
+
+	<div class="game-body">
+		<div id="school-sidebar" class="sidebar">
+			<ul id="remaining-list"></ul>
+		</div>
+		<div class="game-map-wrap">
+			<svg id="game-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
+				<defs>
+					<filter id="dot-glow">
+						<feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+						<feMerge>
+							<feMergeNode in="coloredBlur"/>
+							<feMergeNode in="SourceGraphic"/>
+						</feMerge>
+					</filter>
+				</defs>
+				<g id="states"></g>
+				<g id="school-dots"></g>
+				<circle id="zoom-circle" r="0" fill="none" stroke="#28a745" stroke-width="3" opacity="0" />
+				<line id="feedback-line" style="display:none;" stroke="#dc3545" stroke-width="2" stroke-dasharray="6,4" />
+				<g id="map-labels"></g>
+				<g id="hover-tooltip" style="display:none; pointer-events:none;">
+					<rect id="hover-tooltip-bg" rx="3" ry="3" fill="white" fill-opacity="0.92" stroke="#888" stroke-width="0.5"></rect>
+					<text id="hover-tooltip-text" font-size="12" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="600" fill="#333"></text>
+				</g>
+			</svg>
+
+			<div id="feedback-panel" class="map-feedback-panel"></div>
+		</div>
+	</div>
+
+	<button id="next-button" style="display:none;">Next</button>
+</div>
+
+<div id="results-screen" class="screen-container" style="display:none;">
+	<div class="results-card">
+		<h1>Round Complete!</h1>
+
+		<div class="results-summary">
+			<div class="result-stat">
+				<span class="label">Total Score</span>
+				<span id="results-total-score" class="value">0</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Time Elapsed</span>
+				<span id="results-time" class="value">0:00</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Schools Found</span>
+				<span id="results-count" class="value">0/16</span>
+			</div>
+		</div>
+
+		<div class="results-breakdown">
+			<h3>Question Breakdown</h3>
+			<table id="results-table" class="results-table">
+				<thead>
+					<tr>
+						<th>School</th>
+						<th>Attempts</th>
+						<th>Time</th>
+						<th>Score</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<button id="play-again-button" class="button button-primary">Play Again</button>
+	</div>
+</div>
