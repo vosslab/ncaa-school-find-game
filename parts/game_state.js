@@ -17,15 +17,19 @@ var gameState = {
 	scores: [],             // score per question
 	answers: [],            // full answer records
 	conferences: [],        // selected conferences
+	tierName: "",           // tier name for localStorage key
 	startTime: 0,           // Date.now() when round started
 	elapsedMs: 0,           // running elapsed time
+	questionStartTime: 0,   // Date.now() when current question started
+	streak: 0,              // consecutive first-attempt correct answers
+	bestStreak: 0,          // best streak in this round
 	timerPaused: false,     // true during feedback display
 	timerInterval: null,    // setInterval reference
 };
 
 //============================================
 // Initialize game with selected conferences
-function startGame(conferences) {
+function startGame(conferences, tierName) {
 	// Filter NCAA_SCHOOLS by selected conferences
 	var filtered = NCAA_SCHOOLS.filter(function(school) {
 		return conferences.indexOf(school.conference) !== -1;
@@ -38,6 +42,7 @@ function startGame(conferences) {
 	gameState.screen = "setup";
 	gameState.schools = filtered;
 	gameState.conferences = conferences;
+	gameState.tierName = tierName || "";
 	gameState.currentIndex = -1;
 	gameState.totalQuestions = filtered.length;
 	gameState.currentSchool = null;
@@ -46,6 +51,8 @@ function startGame(conferences) {
 	gameState.distancesMiles = [];
 	gameState.scores = [];
 	gameState.answers = [];
+	gameState.streak = 0;
+	gameState.bestStreak = 0;
 	gameState.timerPaused = false;
 	gameState.startTime = Date.now();
 	gameState.elapsedMs = 0;
@@ -87,6 +94,8 @@ function nextQuestion() {
 	gameState.currentAttempt = 1;
 	gameState.clickedSchools = [];
 	gameState.distancesMiles = [];
+	// Track when this question started for per-question timing
+	gameState.questionStartTime = Date.now();
 
 	// Remove currentSchool.shortName from remaining[]
 	var idx = gameState.remaining.indexOf(gameState.currentSchool.shortName);
@@ -155,6 +164,21 @@ function scoreAnswer() {
 		score = missPartialCredit(minDistance);
 	}
 
+	// Update streak counter
+	if (correct && gameState.clickedSchools.length === 1) {
+		// First-attempt correct: increment streak
+		gameState.streak += 1;
+		if (gameState.streak > gameState.bestStreak) {
+			gameState.bestStreak = gameState.streak;
+		}
+	} else {
+		// Wrong or multi-attempt: reset streak
+		gameState.streak = 0;
+	}
+
+	// Compute how long this question took
+	var questionTimeMs = Date.now() - gameState.questionStartTime;
+
 	// Build answer record and push to answers[]
 	var answerRecord = {
 		school: gameState.currentSchool,
@@ -162,7 +186,8 @@ function scoreAnswer() {
 		clickedSchools: gameState.clickedSchools.slice(),
 		distancesMiles: gameState.distancesMiles.slice(),
 		score: score,
-		correct: correct
+		correct: correct,
+		questionTimeMs: questionTimeMs,
 	};
 	gameState.answers.push(answerRecord);
 
@@ -219,7 +244,9 @@ function getResults() {
 		totalScore: totalScore,
 		totalQuestions: gameState.totalQuestions,
 		elapsedMs: gameState.elapsedMs,
-		conferences: gameState.conferences
+		conferences: gameState.conferences,
+		tierName: gameState.tierName,
+		bestStreak: gameState.bestStreak,
 	};
 }
 
@@ -308,6 +335,38 @@ function getElapsedFormatted() {
 }
 
 //============================================
+//============================================
+// Best score persistence via localStorage
+function getBestScoreKey(tierName) {
+	// Build a localStorage key from the tier name
+	var key = "ncaa-best-" + tierName.replace(/\s+/g, "-").toLowerCase();
+	return key;
+}
+
+//============================================
+function saveBestScore(tierName, totalScore, totalQuestions) {
+	var key = getBestScoreKey(tierName);
+	var maxScore = totalQuestions * 1000;
+	var pct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+	var existing = localStorage.getItem(key);
+	var existingPct = existing ? parseInt(existing, 10) : 0;
+	if (pct > existingPct) {
+		localStorage.setItem(key, String(pct));
+		return true;
+	}
+	return false;
+}
+
+//============================================
+function loadBestScore(tierName) {
+	var key = getBestScoreKey(tierName);
+	var stored = localStorage.getItem(key);
+	if (stored) {
+		return parseInt(stored, 10);
+	}
+	return null;
+}
+
 // Simple assertion tests
 var _testCredit = missPartialCredit(0);
 console.assert(_testCredit === 200, "missPartialCredit(0) should be 200, got " + _testCredit);

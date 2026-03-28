@@ -1,24 +1,28 @@
 <div id="setup-screen" class="screen-container">
 	<div class="setup-card">
 		<h1>NCAA School Find Game</h1>
-		<p class="subtitle">Find the school on the map!</p>
+		<p class="subtitle">How well do you know NCAA school locations?</p>
 
-		<div class="conference-selector">
-			<label><input type="checkbox" class="conference-checkbox" value="SEC" checked> SEC</label>
-			<label><input type="checkbox" class="conference-checkbox" value="Big Ten" checked> Big Ten</label>
-			<label><input type="checkbox" class="conference-checkbox" value="Big 12" checked> Big 12</label>
-			<label><input type="checkbox" class="conference-checkbox" value="ACC" checked> ACC</label>
+		<div class="conference-selector" id="tier-selector">
+			<label><input type="radio" name="tier" class="tier-radio" value="Power Conferences" checked> Power Conferences <span class="tier-count" id="tier-count-power">(68 schools)</span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="Mid-Major Conferences"> Mid-Major Conferences <span class="tier-count" id="tier-count-midmajor"></span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="All Conferences"> All Conferences <span class="tier-count" id="tier-count-all"></span></label>
 		</div>
+		<p id="setup-error" class="setup-error" style="display:none;">Select a conference tier to play</p>
 
 		<button id="start-button" class="button button-primary">Start Game</button>
+		<button id="theme-toggle-setup" class="theme-toggle" title="Toggle dark/light mode">&#9790;</button>
 	</div>
 </div>
 
 <div id="game-screen" class="screen-container" style="display:none;">
 	<div class="game-topbar">
-		<span class="topbar-progress"><span id="progress-display">0/16</span> | <span id="score-display">0</span>%</span>
+		<span class="topbar-progress"><span id="progress-display">0 of 16</span></span>
+		<span class="topbar-score">Score: <span id="score-display">0%</span></span>
 		<span class="topbar-prompt">Click on <span id="question-text" class="topbar-school-name">Stanford</span></span>
+		<span class="topbar-streak" id="streak-display"></span>
 		<span class="topbar-timer" id="timer-display">00:00</span>
+		<button id="theme-toggle-game" class="theme-toggle" title="Toggle dark/light mode">&#9790;</button>
 	</div>
 
 	<div class="game-body">
@@ -26,10 +30,10 @@
 			<ul id="remaining-list"></ul>
 		</div>
 		<div class="game-map-wrap">
-			<svg id="game-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
+			<svg id="game-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="United States map with NCAA school locations">
 				<defs>
 					<filter id="dot-glow">
-						<feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+						<feGaussianBlur stdDeviation="5" result="coloredBlur"/>
 						<feMerge>
 							<feMergeNode in="coloredBlur"/>
 							<feMergeNode in="SourceGraphic"/>
@@ -47,11 +51,23 @@
 				</g>
 			</svg>
 
-			<div id="feedback-panel" class="map-feedback-panel"></div>
+			<div id="feedback-panel" class="map-feedback-panel" aria-live="polite"></div>
+			<label id="state-labels-toggle" class="state-labels-toggle"><input type="checkbox" id="show-state-labels"> Show states</label>
 		</div>
 	</div>
 
 	<button id="next-button" style="display:none;">Next</button>
+
+	<!-- Mobile school list drawer (visible only on narrow screens) -->
+	<div id="mobile-drawer" class="mobile-drawer">
+		<div id="mobile-drawer-handle" class="mobile-drawer-handle">
+			<span class="drawer-handle-bar"></span>
+			<span class="drawer-handle-text">School List</span>
+		</div>
+		<div class="mobile-drawer-content">
+			<ul id="mobile-remaining-list"></ul>
+		</div>
+	</div>
 </div>
 
 <div id="results-screen" class="screen-container" style="display:none;">
@@ -71,7 +87,13 @@
 				<span class="label">Schools Found</span>
 				<span id="results-count" class="value">0/16</span>
 			</div>
+			<div class="result-stat">
+				<span class="label">Best Streak</span>
+				<span id="results-streak" class="value">0</span>
+			</div>
 		</div>
+
+		<p id="results-best-score" style="text-align:center; font-weight:600; font-size:16px; margin-bottom:20px;"></p>
 
 		<div class="results-breakdown">
 			<h3>Question Breakdown</h3>
@@ -88,6 +110,7 @@
 			</table>
 		</div>
 
+		<button id="share-results-button" class="button button-secondary" style="margin-top:10px; width:100%; background:#6c757d; color:white;">Copy Results</button>
 		<button id="play-again-button" class="button button-primary">Play Again</button>
 	</div>
 </div>

@@ -10,62 +10,28 @@ var correctlyAnsweredIndices = {};
 // Store projected coordinates for each school (computed once in renderMap)
 var projectedCoords = [];
 
-// ============================================
-// Color Accessibility
-// ============================================
-
 //============================================
-function hexToRgb(hex) {
-	// Parse "#RRGGBB" to [r, g, b] in 0-255
-	var result = /^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/.exec(hex);
-	if (!result) {
-		return [0, 0, 0];
+//============================================
+function getSchoolColors(school) {
+	// Return both school colors for half-and-half dots
+	// colorSwap is pre-computed by _compute_color_swaps.py to ensure
+	// neighboring schools have visually distinct dot patterns
+	if (school.colorSwap) {
+		return {
+			fill: school.colorSecondary,
+			stroke: school.colorPrimary,
+		};
 	}
-	return [
-		parseInt(result[1], 16),
-		parseInt(result[2], 16),
-		parseInt(result[3], 16)
-	];
-}
-
-//============================================
-function getRelativeLuminance(hex) {
-	// WCAG 2.0 relative luminance
-	var rgb = hexToRgb(hex);
-	var channels = rgb.map(function(c) {
-		var srgb = c / 255;
-		if (srgb <= 0.04045) {
-			return srgb / 12.92;
-		}
-		return Math.pow((srgb + 0.055) / 1.055, 2.4);
-	});
-	return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-}
-
-//============================================
-function getContrastRatio(hex1, hex2) {
-	var l1 = getRelativeLuminance(hex1);
-	var l2 = getRelativeLuminance(hex2);
-	var lighter = Math.max(l1, l2);
-	var darker = Math.min(l1, l2);
-	return (lighter + 0.05) / (darker + 0.05);
+	return {
+		fill: school.colorPrimary,
+		stroke: school.colorSecondary,
+	};
 }
 
 //============================================
 function getDotColor(school) {
-	// Pick the school color that has better contrast on the map background (#d4dae0)
-	var mapBg = "#d4dae0";
-	var primaryContrast = getContrastRatio(school.colorPrimary, mapBg);
-	var secondaryContrast = getContrastRatio(school.colorSecondary, mapBg);
-	// Need at least 3:1 for graphical elements per WCAG
-	if (primaryContrast >= 3.0) {
-		return school.colorPrimary;
-	}
-	if (secondaryContrast >= 3.0) {
-		return school.colorSecondary;
-	}
-	// Fallback: darken by returning black
-	return "#333333";
+	// Legacy single-color accessor for sidebar dots
+	return school.colorPrimary;
 }
 
 // ============================================
@@ -78,7 +44,16 @@ function showScreen(screenName) {
 	screens.forEach(function(name) {
 		var el = document.getElementById(name + "-screen");
 		if (el) {
-			el.style.display = (name === screenName) ? "flex" : "none";
+			if (name === screenName) {
+				el.style.display = "flex";
+				// Trigger fade-in animation
+				el.classList.remove("animate-in");
+				void el.offsetWidth;
+				el.classList.add("animate-in");
+			} else {
+				el.style.display = "none";
+				el.classList.remove("animate-in");
+			}
 		}
 	});
 }
@@ -86,11 +61,16 @@ function showScreen(screenName) {
 //============================================
 function showSetupScreen() {
 	showScreen("setup");
-	// Reset checkboxes to checked
-	var checkboxes = document.querySelectorAll(".conference-checkbox");
-	checkboxes.forEach(function(cb) {
-		cb.checked = true;
-	});
+	// Reset tier radio to first option (Power Conferences)
+	var radios = document.querySelectorAll(".tier-radio");
+	if (radios.length > 0) {
+		radios[0].checked = true;
+	}
+	// Hide any setup error
+	var errorEl = document.getElementById("setup-error");
+	if (errorEl) {
+		errorEl.style.display = "none";
+	}
 	// Reset answered tracking
 	correctlyAnsweredIndices = {};
 	projectedCoords = [];
@@ -121,12 +101,14 @@ function renderMap(schools) {
 	correctlyAnsweredIndices = {};
 	projectedCoords = [];
 
-	// Render state outlines
+	// Render state outlines with region-based color tints
 	if (statesGroup && US_STATE_PATHS) {
 		US_STATE_PATHS.forEach(function(state) {
 			var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 			path.setAttribute("d", state.d);
-			path.setAttribute("class", "state-path");
+			// Add region class for subtle color tinting
+			var regionClass = state.region ? "region-" + state.region.toLowerCase() : "";
+			path.setAttribute("class", "state-path " + regionClass);
 			statesGroup.appendChild(path);
 		});
 	}
@@ -138,51 +120,117 @@ function renderMap(schools) {
 		coordsList.push({ x: coords[0], y: coords[1] });
 	});
 
-	// Jitter overlapping dots (schools within 8px of each other)
-	for (var i = 0; i < coordsList.length; i++) {
-		for (var j = i + 1; j < coordsList.length; j++) {
-			var dx = coordsList[j].x - coordsList[i].x;
-			var dy = coordsList[j].y - coordsList[i].y;
-			var dist = Math.sqrt(dx * dx + dy * dy);
-			if (dist < 8) {
-				// Push them apart along the line between them
-				var angle = Math.atan2(dy, dx);
-				var push = (8 - dist) / 2 + 2;
-				coordsList[i].x -= Math.cos(angle) * push;
-				coordsList[i].y -= Math.sin(angle) * push;
-				coordsList[j].x += Math.cos(angle) * push;
-				coordsList[j].y += Math.sin(angle) * push;
+	// Save original positions so we can cap displacement
+	var origCoords = [];
+	for (var oc = 0; oc < coordsList.length; oc++) {
+		origCoords.push({ x: coordsList[oc].x, y: coordsList[oc].y });
+	}
+
+	// Jitter overlapping dots - multiple passes to separate clusters
+	// minSpacing just larger than dot diameter so dots don't visually overlap
+	// maxDrift caps how far a dot can move from its true location (accuracy)
+	// Allow partial overlap -- just prevent complete stacking
+	var minSpacing = 10;
+	var maxDrift = 12;
+	var maxPasses = 10;
+	for (var pass = 0; pass < maxPasses; pass++) {
+		var moved = false;
+		for (var i = 0; i < coordsList.length; i++) {
+			for (var j = i + 1; j < coordsList.length; j++) {
+				var dx = coordsList[j].x - coordsList[i].x;
+				var dy = coordsList[j].y - coordsList[i].y;
+				var dist = Math.sqrt(dx * dx + dy * dy);
+				if (dist < minSpacing) {
+					var angle = (dist > 0.1)
+						? Math.atan2(dy, dx)
+						: (Math.random() * Math.PI * 2);
+					var push = (minSpacing - dist) / 2 + 1;
+					coordsList[i].x -= Math.cos(angle) * push;
+					coordsList[i].y -= Math.sin(angle) * push;
+					coordsList[j].x += Math.cos(angle) * push;
+					coordsList[j].y += Math.sin(angle) * push;
+					moved = true;
+				}
 			}
+		}
+		// Clamp all dots to maxDrift from original position
+		for (var c = 0; c < coordsList.length; c++) {
+			var cdx = coordsList[c].x - origCoords[c].x;
+			var cdy = coordsList[c].y - origCoords[c].y;
+			var cdist = Math.sqrt(cdx * cdx + cdy * cdy);
+			if (cdist > maxDrift) {
+				var scale = maxDrift / cdist;
+				coordsList[c].x = origCoords[c].x + cdx * scale;
+				coordsList[c].y = origCoords[c].y + cdy * scale;
+			}
+		}
+		if (!moved) {
+			break;
 		}
 	}
 
 	// Store projected coords for later use
 	projectedCoords = coordsList;
 
+	// Detect touch device for larger hit targets
+	var isTouch = ("ontouchstart" in window);
+	var baseDotRadius = isTouch ? 7 : 6;
+	var baseHitRadius = isTouch ? 18 : 12;
+
+	// Compute per-dot density: count neighbors within 40px
+	// Dense regions get smaller dots so they don't pile up
+	var densityRadius = 40;
+	var dotRadii = [];
+	var hitRadii = [];
+	for (var di = 0; di < coordsList.length; di++) {
+		var neighborCount = 0;
+		for (var dj = 0; dj < coordsList.length; dj++) {
+			if (di === dj) {
+				continue;
+			}
+			var ddx = coordsList[dj].x - coordsList[di].x;
+			var ddy = coordsList[dj].y - coordsList[di].y;
+			var ddist = Math.sqrt(ddx * ddx + ddy * ddy);
+			if (ddist < densityRadius) {
+				neighborCount++;
+			}
+		}
+		// Scale down: 0-1 neighbors = full size, 5+ neighbors = 70% size
+		var densityScale = Math.max(0.7, 1.0 - neighborCount * 0.06);
+		dotRadii.push(Math.round(baseDotRadius * densityScale * 10) / 10);
+		hitRadii.push(Math.round(baseHitRadius * densityScale * 10) / 10);
+	}
+
 	// Render dots - all start as gray (unanswered)
 	if (dotsGroup) {
 		schools.forEach(function(school, idx) {
 			var x = coordsList[idx].x;
 			var y = coordsList[idx].y;
+			var dotRadius = dotRadii[idx];
+			var hitRadius = hitRadii[idx];
 
 			var group = document.createElementNS("http://www.w3.org/2000/svg", "g");
 			group.setAttribute("class", "school-dot-group");
 			group.setAttribute("data-school-index", idx);
+			group.setAttribute("role", "button");
+			group.setAttribute("aria-label", school.shortName);
+			group.setAttribute("tabindex", "0");
 
 			// Hit-area circle (larger invisible target)
 			var hitCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			hitCircle.setAttribute("cx", x);
 			hitCircle.setAttribute("cy", y);
-			hitCircle.setAttribute("r", "12");
+			hitCircle.setAttribute("r", hitRadius);
 			hitCircle.setAttribute("class", "hit-area");
 
-			// Visible dot - starts gray
+			// Visible dot - starts with theme-aware unanswered color
+			var dotColor = getComputedStyle(document.documentElement).getPropertyValue("--dot-unanswered").trim() || "#888";
 			var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			dot.setAttribute("cx", x);
 			dot.setAttribute("cy", y);
-			dot.setAttribute("r", "5");
+			dot.setAttribute("r", dotRadius);
 			dot.setAttribute("class", "visible-dot");
-			dot.setAttribute("fill", "#999");
+			dot.setAttribute("fill", dotColor);
 
 			group.appendChild(hitCircle);
 			group.appendChild(dot);
@@ -197,18 +245,61 @@ function renderMap(schools) {
 
 //============================================
 function markDotAnswered(schoolIndex, schools) {
-	// Mark a dot as correctly answered - change to school color
+	// Mark a dot as correctly answered - replace gray circle with half-and-half dot
 	correctlyAnsweredIndices[schoolIndex] = true;
 	var group = document.querySelector(".school-dot-group[data-school-index='" + schoolIndex + "']");
 	if (group) {
 		var dot = group.querySelector(".visible-dot");
-		if (dot) {
-			var color = getDotColor(schools[schoolIndex]);
-			dot.setAttribute("fill", color);
-			dot.setAttribute("r", "6");
+		if (!dot || !projectedCoords[schoolIndex]) {
+			return;
 		}
+		var x = projectedCoords[schoolIndex].x;
+		var y = projectedCoords[schoolIndex].y;
+		var r = 7;
+		var colors = getSchoolColors(schools[schoolIndex]);
+
+		// Hide the original circle
+		dot.setAttribute("r", "0");
+
+		// Create half-and-half semicircle paths
+		var ns = "http://www.w3.org/2000/svg";
+
+		// Left half = primary color
+		var leftPath = document.createElementNS(ns, "path");
+		var leftD = "M " + x + "," + (y - r) + " A " + r + "," + r + " 0 0,0 " + x + "," + (y + r) + " Z";
+		leftPath.setAttribute("d", leftD);
+		leftPath.setAttribute("fill", colors.fill);
+		leftPath.setAttribute("class", "half-dot");
+
+		// Right half = secondary color
+		var rightPath = document.createElementNS(ns, "path");
+		var rightD = "M " + x + "," + (y - r) + " A " + r + "," + r + " 0 0,1 " + x + "," + (y + r) + " Z";
+		rightPath.setAttribute("d", rightD);
+		rightPath.setAttribute("fill", colors.stroke);
+		rightPath.setAttribute("class", "half-dot");
+
+		// Thin outline for definition
+		var outline = document.createElementNS(ns, "circle");
+		outline.setAttribute("cx", x);
+		outline.setAttribute("cy", y);
+		outline.setAttribute("r", r);
+		outline.setAttribute("fill", "none");
+		outline.setAttribute("stroke", "#333");
+		outline.setAttribute("stroke-width", "0.5");
+		outline.setAttribute("class", "half-dot");
+
+		group.appendChild(leftPath);
+		group.appendChild(rightPath);
+		group.appendChild(outline);
+
 		// Disable hover/click styling for answered dots
 		group.classList.add("dot-answered");
+
+		// Move answered dot to front of parent (renders behind unanswered dots in SVG)
+		var parent = group.parentNode;
+		if (parent && parent.firstChild !== group) {
+			parent.insertBefore(group, parent.firstChild);
+		}
 	}
 }
 
@@ -396,12 +487,22 @@ function updateScoreDisplay() {
 		scoreDisplay.textContent = pct + "%";
 	}
 
-	// Progress: "3/16"
+	// Progress: "3 of 16"
 	var progressDisplay = document.getElementById("progress-display");
 	if (progressDisplay) {
 		var answered = gameState.answers.length;
 		var totalQ = gameState.totalQuestions;
-		progressDisplay.textContent = answered + "/" + totalQ;
+		progressDisplay.textContent = answered + " of " + totalQ;
+	}
+
+	// Streak indicator (show when streak >= 3)
+	var streakDisplay = document.getElementById("streak-display");
+	if (streakDisplay) {
+		if (gameState.streak >= 3) {
+			streakDisplay.textContent = gameState.streak + "x streak";
+		} else {
+			streakDisplay.textContent = "";
+		}
 	}
 
 	// Timer
@@ -419,9 +520,26 @@ function updateScoreDisplay() {
 function showResultsScreen(results) {
 	showScreen("results");
 
+	// Update heading based on performance
+	var maxScore = results.totalQuestions * 1000;
+	var pct = maxScore > 0 ? Math.round((results.totalScore / maxScore) * 100) : 0;
+	var headingEl = document.querySelector(".results-card h1");
+	if (headingEl) {
+		if (pct === 100) {
+			headingEl.textContent = "Perfect!";
+		} else if (pct >= 80) {
+			headingEl.textContent = "Great Job!";
+		} else if (pct >= 50) {
+			headingEl.textContent = "Good Effort!";
+		} else {
+			headingEl.textContent = "Keep Practicing!";
+		}
+	}
+
+	// Show total score with max context
 	var totalScoreEl = document.getElementById("results-total-score");
 	if (totalScoreEl) {
-		totalScoreEl.textContent = results.totalScore;
+		totalScoreEl.textContent = results.totalScore + " / " + maxScore;
 	}
 
 	var timeEl = document.getElementById("results-time");
@@ -441,6 +559,28 @@ function showResultsScreen(results) {
 			}
 		}
 		countEl.textContent = correct + "/" + results.totalQuestions;
+	}
+
+	// Best streak
+	var streakEl = document.getElementById("results-streak");
+	if (streakEl) {
+		streakEl.textContent = results.bestStreak || 0;
+	}
+
+	// Save best score and show "New Best!" if applicable
+	if (results.tierName) {
+		var isNewBest = saveBestScore(results.tierName, results.totalScore, results.totalQuestions);
+		var bestScoreEl = document.getElementById("results-best-score");
+		if (bestScoreEl) {
+			var bestPct = loadBestScore(results.tierName);
+			if (isNewBest) {
+				bestScoreEl.textContent = "New Best! " + bestPct + "%";
+				bestScoreEl.style.color = "var(--success-color)";
+			} else if (bestPct !== null) {
+				bestScoreEl.textContent = "Best: " + bestPct + "%";
+				bestScoreEl.style.color = "";
+			}
+		}
 	}
 
 	// Build results table body
@@ -470,7 +610,9 @@ function showResultsScreen(results) {
 			row.appendChild(attemptsCell);
 
 			var timeCell = document.createElement("td");
-			timeCell.textContent = "-";
+			// Format question time as seconds with one decimal
+			var timeSec = answer.questionTimeMs ? (answer.questionTimeMs / 1000).toFixed(1) : "-";
+			timeCell.textContent = timeSec + "s";
 			row.appendChild(timeCell);
 
 			var scoreCell = document.createElement("td");
@@ -567,21 +709,30 @@ function initSidebar(schools) {
 		return 0;
 	});
 
-	// Build the list HTML
-	var listEl = document.getElementById("remaining-list");
-	if (!listEl) {
-		return;
-	}
-	listEl.innerHTML = "";
+	// Build the list HTML for both sidebar and mobile drawer
+	var listEls = [
+		document.getElementById("remaining-list"),
+		document.getElementById("mobile-remaining-list"),
+	];
 
-	for (var j = 0; j < sidebarSortedIndices.length; j++) {
-		var idx = sidebarSortedIndices[j];
-		var school = schools[idx];
-		var li = document.createElement("li");
-		li.setAttribute("data-school-index", idx);
-		li.setAttribute("id", "sidebar-item-" + idx);
-		li.textContent = school.shortName;
-		listEl.appendChild(li);
+	for (var k = 0; k < listEls.length; k++) {
+		var listEl = listEls[k];
+		if (!listEl) {
+			continue;
+		}
+		listEl.innerHTML = "";
+		// Use a prefix to distinguish sidebar vs mobile list item IDs
+		var prefix = listEl.id === "remaining-list" ? "sidebar-item-" : "mobile-item-";
+
+		for (var j = 0; j < sidebarSortedIndices.length; j++) {
+			var idx = sidebarSortedIndices[j];
+			var school = schools[idx];
+			var li = document.createElement("li");
+			li.setAttribute("data-school-index", idx);
+			li.setAttribute("id", prefix + idx);
+			li.textContent = school.shortName;
+			listEl.appendChild(li);
+		}
 	}
 }
 
@@ -594,38 +745,46 @@ function updateRemainingList(remaining, schools) {
 
 	var currentName = gameState.currentSchool ? gameState.currentSchool.shortName : "";
 
-	for (var i = 0; i < schools.length; i++) {
-		var li = document.getElementById("sidebar-item-" + i);
-		if (!li) {
-			continue;
-		}
+	// Update both sidebar and mobile list
+	var prefixes = ["sidebar-item-", "mobile-item-"];
+	for (var p = 0; p < prefixes.length; p++) {
+		var prefix = prefixes[p];
+		for (var i = 0; i < schools.length; i++) {
+			var li = document.getElementById(prefix + i);
+			if (!li) {
+				continue;
+			}
 
-		// Clear previous state classes
-		li.classList.remove("sidebar-current", "sidebar-answered");
-		li.innerHTML = "";
+			// Clear previous state classes
+			li.classList.remove("sidebar-current", "sidebar-answered");
+			li.innerHTML = "";
 
-		var school = schools[i];
+			var school = schools[i];
 
-		if (correctlyAnsweredIndices[i]) {
-			// Answered: strikethrough + school color dot
-			li.classList.add("sidebar-answered");
-			var dot = document.createElement("span");
-			dot.className = "sidebar-dot";
-			dot.style.backgroundColor = getDotColor(school);
-			li.appendChild(dot);
-			var text = document.createTextNode(school.shortName);
-			li.appendChild(text);
-		} else if (school.shortName === currentName) {
-			// Current question: highlighted
-			li.classList.add("sidebar-current");
-			li.textContent = school.shortName;
-		} else {
-			// Unanswered
-			li.textContent = school.shortName;
+			if (correctlyAnsweredIndices[i]) {
+				// Answered: strikethrough + school color dot
+				li.classList.add("sidebar-answered");
+				// Only add colored dot in sidebar, not mobile (saves space)
+				if (prefix === "sidebar-item-") {
+					var dot = document.createElement("span");
+					dot.className = "sidebar-dot";
+					dot.style.backgroundColor = getDotColor(school);
+					li.appendChild(dot);
+				}
+				var text = document.createTextNode(school.shortName);
+				li.appendChild(text);
+			} else if (school.shortName === currentName) {
+				// Current question: highlighted
+				li.classList.add("sidebar-current");
+				li.textContent = school.shortName;
+			} else {
+				// Unanswered
+				li.textContent = school.shortName;
+			}
 		}
 	}
 
-	// Scroll current item into view
+	// Scroll current item into view (sidebar only)
 	if (gameState.currentSchool) {
 		var currentIndex = -1;
 		for (var k = 0; k < schools.length; k++) {
@@ -641,4 +800,132 @@ function updateRemainingList(remaining, schools) {
 			}
 		}
 	}
+}
+
+// ============================================
+// State Abbreviation Labels (toggle, default OFF)
+// ============================================
+
+// Track whether state labels are currently shown
+var stateLabelsVisible = false;
+
+//============================================
+function renderStateLabels() {
+	// Add 2-letter state abbreviation labels at centroid positions
+	var svg = document.getElementById("game-map");
+	if (!svg) {
+		return;
+	}
+
+	// Remove any existing state label group
+	var existing = document.getElementById("state-labels");
+	if (existing) {
+		existing.remove();
+	}
+
+	// Create a new group for state labels
+	var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+	g.setAttribute("id", "state-labels");
+	g.setAttribute("pointer-events", "none");
+
+	// Read theme color for labels
+	var labelColor = getComputedStyle(document.documentElement).getPropertyValue("--state-stroke").trim() || "#bbb";
+
+	for (var i = 0; i < US_STATE_PATHS.length; i++) {
+		var state = US_STATE_PATHS[i];
+		if (!state.labelX || !state.labelY) {
+			continue;
+		}
+
+		var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+		text.setAttribute("x", state.labelX);
+		text.setAttribute("y", state.labelY);
+		text.setAttribute("font-size", "9");
+		text.setAttribute("font-family", "-apple-system, BlinkMacSystemFont, sans-serif");
+		text.setAttribute("font-weight", "600");
+		text.setAttribute("fill", labelColor);
+		text.setAttribute("text-anchor", "middle");
+		text.setAttribute("dominant-baseline", "central");
+		text.textContent = state.id;
+		g.appendChild(text);
+	}
+
+	// Insert before the school-dots group so labels are behind dots
+	var dotsGroup = document.getElementById("school-dots");
+	if (dotsGroup) {
+		svg.insertBefore(g, dotsGroup);
+	} else {
+		svg.appendChild(g);
+	}
+}
+
+//============================================
+function removeStateLabels() {
+	var existing = document.getElementById("state-labels");
+	if (existing) {
+		existing.remove();
+	}
+}
+
+//============================================
+function toggleStateLabels(show) {
+	stateLabelsVisible = show;
+	if (show) {
+		renderStateLabels();
+	} else {
+		removeStateLabels();
+	}
+	// Save preference
+	localStorage.setItem("ncaa-show-state-labels", show ? "1" : "0");
+}
+
+// ============================================
+// Share Results (Wordle-style)
+// ============================================
+
+//============================================
+function generateShareText(results) {
+	// Build a shareable text summary with emoji grid
+	var maxScore = results.totalQuestions * 1000;
+	var pct = maxScore > 0 ? Math.round((results.totalScore / maxScore) * 100) : 0;
+	var tierLabel = results.tierName || "NCAA";
+
+	// Header line
+	var text = "NCAA School Find - " + tierLabel + "\n";
+	text += "Score: " + pct + "% (" + results.totalScore + "/" + maxScore + ")\n";
+
+	// Emoji grid: each answer gets a colored square
+	var grid = "";
+	for (var i = 0; i < results.answers.length; i++) {
+		var answer = results.answers[i];
+		var attempts = answer.clickedSchools ? answer.clickedSchools.length : 0;
+		if (answer.correct && attempts === 1) {
+			grid += String.fromCodePoint(0x1F7E9);
+		} else if (answer.correct && attempts === 2) {
+			grid += String.fromCodePoint(0x1F7E8);
+		} else if (answer.correct && attempts === 3) {
+			grid += String.fromCodePoint(0x1F7E7);
+		} else {
+			grid += String.fromCodePoint(0x1F7E5);
+		}
+		// Line break every 10 schools
+		if ((i + 1) % 10 === 0) {
+			grid += "\n";
+		}
+	}
+	text += grid.trim() + "\n";
+
+	return text;
+}
+
+//============================================
+function copyShareResults(results) {
+	var text = generateShareText(results);
+
+	// Try modern clipboard API
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(text);
+		return true;
+	}
+	return false;
 }

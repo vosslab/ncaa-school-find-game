@@ -2,6 +2,20 @@
 
 ### Additions and New Features
 
+- **Conference tier system**: Replaced individual conference checkboxes (SEC, Big Ten, Big 12, ACC) with tier-based radio buttons: "Power Conferences (68 schools)" and "Mid-Major Conferences (125 schools)". Added `CONFERENCE_TIERS` data structure in `parts/constants.js`. Dynamic school count display updates based on selection.
+- **125 mid-major schools added**: Expanded `NCAA_SCHOOLS` array with schools from 10 mid-major conferences (AAC, MWC, A-10, WCC, MVC, C-USA, Sun Belt, MAC, CAA, Horizon). Total schools now 193. Each entry has full data: name, shortName, mascot, conference, city, state, lat/lon, colors, hintRegion.
+- **Dark/light mode**: Added theme support with system preference detection via `prefers-color-scheme`. Manual toggle button (moon icon) on setup screen and game topbar cycles light/dark/system. All hardcoded colors converted to CSS custom properties. Preference saved in localStorage.
+- **Streak indicator**: Tracks consecutive first-attempt correct answers. Shows "Nx streak" in topbar when streak >= 3. Best streak displayed on results screen.
+- **Per-question time tracking**: Each question records elapsed time from display to answer. Results table now shows actual time per question (e.g. "3.2s") instead of "-".
+- **Best score persistence**: Saves best score percentage per tier in localStorage. Results screen shows "New Best!" or previous best score.
+- **Share results (Wordle-style)**: "Copy Results" button on results screen generates emoji grid (green/yellow/orange/red squares per school) with score summary and copies to clipboard.
+- **State abbreviation labels**: Toggle checkbox ("Show states") renders 2-letter state abbreviations at centroid positions on the map. Default OFF. Preference saved in localStorage. Added `labelX`/`labelY` centroid coordinates to all 49 entries in `parts/map_data.js`.
+- **Mobile school list drawer**: Collapsible bottom drawer replaces hidden sidebar on screens narrower than 768px. Compact tag-style layout. Slide-up toggle with handle bar.
+- **Touch target optimization**: On touch devices, dot hit area radius increases from 12 to 18 and visible dot from 6 to 7 for easier tapping.
+- **Screen transition animations**: CSS fade-in animation (300ms) on screen transitions between setup, game, and results.
+- **ARIA accessibility**: Added `role="img"` and `aria-label` on map SVG, `aria-live="polite"` on feedback panel, `role="button"` and `aria-label` on dot groups, `tabindex="0"` for keyboard navigation, `:focus-visible` outline on dots.
+- **App meta tags**: Added description, theme-color, apple-mobile-web-app-capable, and inline SVG favicon to `parts/head.html`.
+- **Region hint pulsing**: Region hint dots now pulse with animation (`@keyframes pulse-hint`) and stronger glow (`stdDeviation` 3 to 5) for better visibility.
 - Added hover tooltip on map dots: hovering an unanswered dot shows the current question school name (not the dot identity) in an SVG tooltip near the cursor. Acts as a reminder of what you are looking for. Uses event delegation on the `school-dots` group with `mouseover`/`mouseout` handlers. Tooltip auto-flips to avoid viewBox edges.
 - Enhanced dot hover CSS: unanswered dots now show a white stroke outline on hover in addition to the radius growth, using `stroke` and `stroke-width` transitions.
 - Restored Seterra-style school list sidebar on the left side of the game screen. Shows all schools sorted alphabetically. Current question is highlighted in blue with a left border accent. Answered schools show strikethrough text with a colored dot matching the school color. Sidebar auto-scrolls to the current question.
@@ -10,8 +24,19 @@
 
 ### Behavior or Interface Changes
 
-- Game screen layout changed from single-column map to flexbox row: 200px sidebar (left) + map (right, flex-grow). Sidebar hidden on screens narrower than 768px.
+- **Setup screen**: Conference selection changed from individual conference checkboxes to tier radio buttons. Subtitle changed from "Find the school on the map!" to "How well do you know NCAA school locations?". Inline validation replaces `alert()` for empty selection.
+- **Map visual overhaul**: State fill changed from sage green (`#b8c5b9`) to warm parchment (`#e8e0d4`), stroke from `#e0e8e0` to `#c8c0b4`, stroke-width from 0.8 to 1.0. Dot default radius 5 to 6, hover 7 to 8, answered 6 to 7. Initial dot color `#999` to `#888`.
+- **Topbar redesign**: School name pill changed from dark-on-dark (`bg:#222` on `#3c4257` bar) to white pill on dark bar for contrast. Score and progress split into separate labeled elements ("3 of 16" and "Score: 82%") instead of pipe-separated "0/16 | 0%".
+- **Feedback panel moved**: Repositioned from bottom-right corner to top-center of map for visibility.
+- **Results screen**: Performance-based heading ("Perfect!" / "Great Job!" / etc.). Total score shown with max context (e.g. "52400 / 68000"). Results summary grid expanded to 4 columns with Best Streak stat.
+- **`getDotColor()` now theme-aware**: Reads CSS `--state-fill` variable for WCAG contrast checking instead of hardcoded hex value.
+- Game screen layout changed from single-column map to flexbox row: 200px sidebar (left) + map (right, flex-grow). Sidebar hidden on screens narrower than 768px (now replaced by mobile drawer).
 - Added `<div class="game-body">` wrapper around sidebar and map in `parts/body.html` for the flex layout.
+
+### Fixes and Maintenance
+
+- Removed `#next-button { display: none !important; }` CSS hack -- inline style already handles hiding.
+- Converted all hardcoded color values in `parts/style.css` to CSS custom properties for theme support.
 
 ## 2026-03-25
 
