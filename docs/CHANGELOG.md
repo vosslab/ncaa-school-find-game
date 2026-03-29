@@ -1,3 +1,9 @@
+## 2026-03-29
+
+### Fixes and Maintenance
+
+- Replaced template README.md with project-specific content: overview, quick start, documentation links, testing command, and maintainer info.
+
 ## 2026-03-26
 
 ### Additions and New Features
