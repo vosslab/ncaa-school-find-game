@@ -1,3 +1,27 @@
+## 2026-04-02
+
+### Additions and New Features
+
+- **Expanded school database from 193 to 361 schools**: Added all NCAA Division I schools across FBS (136), FCS (126), and non-football (99) subdivisions. New schools sourced from three CSV files (`ncaa_schools-FBS.csv`, `ncaa_schools-FCS.csv`, `ncaa_schools-NonFB.csv`).
+- **Subdivision-based difficulty tiers**: Replaced conference-based tiers (Power/Mid-Major/All) with five subdivision-based tiers: Major Conferences (68), FBS (136), FCS (126), Non-Football (99), and All Division I (361). FBS includes Major Conferences as a subset.
+- **`build_school_data.py` data pipeline**: New Python script that parses CSV files, merges with existing school data, geocodes new schools via Nominatim API, assigns school colors from a curated manual database, and outputs `parts/constants.js`. Caches geocoding results in `school_coordinates_cache.json` and colors in `school_colors_cache.json`.
+- Added `subdivision` field to all school objects in `NCAA_SCHOOLS` array with values "FBS", "FCS", or "Non-football".
+- Added `DIFFICULTY_TIERS` data structure with `type` field ("conference", "subdivision", or "all") for flexible filtering.
+- Added 15+ new conference abbreviations for FCS and non-football conferences: ASUN, America East, Big East, Big Sky, Big South, Big West, Ivy, MAAC, MEAC, NEC, OVC, Pac-12, Patriot, SoCon, Southland, SWAC, Summit, WAC.
+
+### Behavior or Interface Changes
+
+- Setup screen now shows 5 radio buttons (was 3): Major Conferences, FBS Schools, FCS Schools, Non-Football Schools, All Division I.
+- `getSchoolsForTier()` replaces `getConferencesForTier()` in `parts/init.js` for subdivision-aware filtering.
+- `startGame()` in `parts/game_state.js` now receives a pre-filtered school array instead of filtering internally by conference.
+- `CONFERENCE_TIERS` replaced by `DIFFICULTY_TIERS` throughout codebase (constants.js, init.js, generate_debug_map.py).
+- Debug maps now generate per-tier: Major Conferences, FBS, FCS, Non-Football, All Division I, and All Schools.
+
+### Fixes and Maintenance
+
+- Updated `generate_debug_map.py` to parse `DIFFICULTY_TIERS` format and extract `subdivision` field from school objects.
+- Fixed pyflakes warnings: removed unused imports (`sys`, `math`) and non-placeholder f-string.
+
 ## 2026-03-29
 
 ### Fixes and Maintenance

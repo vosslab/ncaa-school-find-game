@@ -28,20 +28,16 @@ var gameState = {
 };
 
 //============================================
-// Initialize game with selected conferences
-function startGame(conferences, tierName) {
-	// Filter NCAA_SCHOOLS by selected conferences
-	var filtered = NCAA_SCHOOLS.filter(function(school) {
-		return conferences.indexOf(school.conference) !== -1;
-	});
-
-	// Shuffle the filtered list (Fisher-Yates)
+// Initialize game with pre-filtered school list
+function startGame(filteredSchools, tierName) {
+	// Copy and shuffle the filtered list (Fisher-Yates)
+	var filtered = filteredSchools.slice();
 	shuffleArray(filtered);
 
 	// Initialize all state fields
 	gameState.screen = "setup";
 	gameState.schools = filtered;
-	gameState.conferences = conferences;
+	gameState.conferences = [];
 	gameState.tierName = tierName || "";
 	gameState.currentIndex = -1;
 	gameState.totalQuestions = filtered.length;

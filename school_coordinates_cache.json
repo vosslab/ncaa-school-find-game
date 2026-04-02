@@ -1,0 +1,622 @@
+{
+	"Abilene Christian|Abilene|TX": {
+		"lat": 32.44645,
+		"lon": -99.7475905
+	},
+	"Alabama A&M|Normal|AL": {
+		"lat": 34.7889792,
+		"lon": -86.5719369
+	},
+	"Alabama State|Montgomery|AL": {
+		"lat": 32.3777111,
+		"lon": -86.3090775
+	},
+	"Albany|Albany|NY": {
+		"lat": 42.6511674,
+		"lon": -73.754968
+	},
+	"Alcorn State|Lorman|MS": {
+		"lat": 31.8204396,
+		"lon": -91.0501057
+	},
+	"American|Washington|DC": {
+		"lat": 38.8950982,
+		"lon": -77.0363849
+	},
+	"Arkansas\u2013Pine Bluff|Pine Bluff|AR": {
+		"lat": 34.2228884,
+		"lon": -92.004334
+	},
+	"Austin Peay|Clarksville|TN": {
+		"lat": 36.5277607,
+		"lon": -87.3588703
+	},
+	"Bakersfield|Bakersfield|CA": {
+		"lat": 35.3738712,
+		"lon": -119.019463
+	},
+	"Bellarmine|Louisville|KY": {
+		"lat": 38.2542376,
+		"lon": -85.759407
+	},
+	"Bethune\u2013Cookman|Daytona Beach|FL": {
+		"lat": 29.2108147,
+		"lon": -81.0228331
+	},
+	"Binghamton|Binghamton|NY": {
+		"lat": 42.098698,
+		"lon": -75.9125187
+	},
+	"Boston University|Boston|MA": {
+		"lat": 42.3588336,
+		"lon": -71.0578303
+	},
+	"Brown|Providence|RI": {
+		"lat": 41.8239891,
+		"lon": -71.4128343
+	},
+	"Bryant|Smithfield|RI": {
+		"lat": 41.9220433,
+		"lon": -71.549507
+	},
+	"Bucknell|Lewisburg|PA": {
+		"lat": 40.9645337,
+		"lon": -76.8847639
+	},
+	"Butler|Indianapolis|IN": {
+		"lat": 39.7683331,
+		"lon": -86.1583502
+	},
+	"Cal Poly|San Luis Obispo|CA": {
+		"lat": 35.3540209,
+		"lon": -120.375716
+	},
+	"Cal State Fullerton|Fullerton|CA": {
+		"lat": 33.8708215,
+		"lon": -117.929416
+	},
+	"Cal State Northridge / CSUN|Northridge|CA": {
+		"lat": 34.2345615,
+		"lon": -118.5369316
+	},
+	"California|Berkeley|CA": {
+		"lat": 37.8708393,
+		"lon": -122.272863
+	},
+	"Canisius|Buffalo|NY": {
+		"lat": 42.8864163,
+		"lon": -78.8781493
+	},
+	"Central Arkansas|Conway|AR": {
+		"lat": 35.0891932,
+		"lon": -92.4398402
+	},
+	"Central Connecticut|New Britain|CT": {
+		"lat": 41.6612104,
+		"lon": -72.7795419
+	},
+	"Charleston Southern|North Charleston|SC": {
+		"lat": 32.8546197,
+		"lon": -79.9748103
+	},
+	"Chattanooga|Chattanooga|TN": {
+		"lat": 35.0457219,
+		"lon": -85.3094883
+	},
+	"Chicago State|Chicago|IL": {
+		"lat": 41.8755616,
+		"lon": -87.6244212
+	},
+	"Colgate|Hamilton|NY": {
+		"lat": 43.6307863,
+		"lon": -74.4659275
+	},
+	"Columbia|New York|NY": {
+		"lat": 40.7127281,
+		"lon": -74.0060152
+	},
+	"Coppin State|Baltimore|MD": {
+		"lat": 39.2908816,
+		"lon": -76.610759
+	},
+	"Cornell|Ithaca|NY": {
+		"lat": 42.4374175,
+		"lon": -76.5483724
+	},
+	"Creighton|Omaha|NE": {
+		"lat": 41.2587459,
+		"lon": -95.9383758
+	},
+	"Dartmouth|Hanover|NH": {
+		"lat": 43.7023545,
+		"lon": -72.2892164
+	},
+	"DePaul|Chicago|IL": {
+		"lat": 41.8755616,
+		"lon": -87.6244212
+	},
+	"Delaware State|Dover|DE": {
+		"lat": 39.158168,
+		"lon": -75.5243682
+	},
+	"Denver|Denver|CO": {
+		"lat": 39.7392364,
+		"lon": -104.984862
+	},
+	"East Tennessee State|Johnson City|TN": {
+		"lat": 36.3167671,
+		"lon": -82.352903
+	},
+	"East Texas A&M|Commerce|TX": {
+		"lat": 33.2436492,
+		"lon": -95.9026927
+	},
+	"Eastern Illinois|Charleston|IL": {
+		"lat": 39.4961458,
+		"lon": -88.1761521
+	},
+	"Eastern Kentucky|Richmond|KY": {
+		"lat": 37.7478572,
+		"lon": -84.2946539
+	},
+	"Eastern Washington|Cheney|WA": {
+		"lat": 47.4892246,
+		"lon": -117.579304
+	},
+	"Fairfield|Fairfield|CT": {
+		"lat": 41.1412078,
+		"lon": -73.2637258
+	},
+	"Fairleigh Dickinson|Hackensack|NJ": {
+		"lat": 40.8870781,
+		"lon": -74.0410667
+	},
+	"Florida A&M|Tallahassee|FL": {
+		"lat": 30.4380832,
+		"lon": -84.2809332
+	},
+	"Furman|Greenville|SC": {
+		"lat": 34.851354,
+		"lon": -82.3984882
+	},
+	"Gardner\u2013Webb|Boiling Springs|NC": {
+		"lat": 35.254292,
+		"lon": -81.6670407
+	},
+	"Georgetown|Washington|DC": {
+		"lat": 38.8950982,
+		"lon": -77.0363849
+	},
+	"Grambling State|Grambling|LA": {
+		"lat": 32.5276503,
+		"lon": -92.7140403
+	},
+	"Harvard|Cambridge|MA": {
+		"lat": 42.3656347,
+		"lon": -71.1040018
+	},
+	"Hawai\u02bbi|Honolulu|HI": {
+		"lat": 21.304547,
+		"lon": -157.855676
+	},
+	"High Point|High Point|NC": {
+		"lat": 35.9556924,
+		"lon": -80.0053176
+	},
+	"Holy Cross|Worcester|MA": {
+		"lat": 42.2625621,
+		"lon": -71.8018877
+	},
+	"Houston Christian|Houston|TX": {
+		"lat": 29.7589382,
+		"lon": -95.3676974
+	},
+	"Howard|Washington|DC": {
+		"lat": 38.8950982,
+		"lon": -77.0363849
+	},
+	"Idaho State|Pocatello|ID": {
+		"lat": 42.8620287,
+		"lon": -112.450627
+	},
+	"Idaho|Moscow|ID": {
+		"lat": 46.7323875,
+		"lon": -117.000165
+	},
+	"Iona|New Rochelle|NY": {
+		"lat": 40.9115386,
+		"lon": -73.7826363
+	},
+	"Jackson State|Jackson|MS": {
+		"lat": 32.2998686,
+		"lon": -90.1830408
+	},
+	"Jacksonville|Jacksonville|FL": {
+		"lat": 30.3262247,
+		"lon": -81.6579179
+	},
+	"Jax State|Jacksonville|AL": {
+		"lat": 33.8137919,
+		"lon": -85.7612872
+	},
+	"Kansas City|Kansas City|MO": {
+		"lat": 39.100105,
+		"lon": -94.5781416
+	},
+	"Lafayette|Easton|PA": {
+		"lat": 40.6916081,
+		"lon": -75.2099866
+	},
+	"Lamar|Beaumont|TX": {
+		"lat": 30.0829344,
+		"lon": -94.0984277
+	},
+	"Lehigh|Bethlehem|PA": {
+		"lat": 40.6178915,
+		"lon": -75.3786521
+	},
+	"Lindenwood|Saint Charles|MO": {
+		"lat": 38.783855,
+		"lon": -90.481677
+	},
+	"Lipscomb|Nashville|TN": {
+		"lat": 36.1622767,
+		"lon": -86.7742984
+	},
+	"Little Rock|Little Rock|AR": {
+		"lat": 34.7465071,
+		"lon": -92.2896267
+	},
+	"Long Beach State|Long Beach|CA": {
+		"lat": 33.7690164,
+		"lon": -118.191604
+	},
+	"Longwood|Farmville|VA": {
+		"lat": 37.3024713,
+		"lon": -78.3923813
+	},
+	"Loyola|Baltimore|MD": {
+		"lat": 39.2908816,
+		"lon": -76.610759
+	},
+	"Maine|Orono|ME": {
+		"lat": 44.883607,
+		"lon": -68.672791
+	},
+	"Manhattan|Riverdale|NY": {
+		"lat": 40.90056,
+		"lon": -73.90639
+	},
+	"Marist|Poughkeepsie|NY": {
+		"lat": 41.7065539,
+		"lon": -73.9283672
+	},
+	"Marquette|Milwaukee|WI": {
+		"lat": 43.0386475,
+		"lon": -87.9090751
+	},
+	"Maryland Eastern Shore|Princess Anne|MD": {
+		"lat": 38.2028428,
+		"lon": -75.6920008
+	},
+	"McNeese|Lake Charles|LA": {
+		"lat": 30.2305095,
+		"lon": -93.2169807
+	},
+	"Mercer|Macon|GA": {
+		"lat": 32.8406946,
+		"lon": -83.6324022
+	},
+	"Merrimack|North Andover|MA": {
+		"lat": 42.7029687,
+		"lon": -71.1309117
+	},
+	"Miami (Florida)|Coral Gables|FL": {
+		"lat": 25.7331105,
+		"lon": -80.2585107
+	},
+	"Miami (Ohio)|Oxford|OH": {
+		"lat": 39.5103048,
+		"lon": -84.7420519
+	},
+	"Mississippi Valley State|Itta Bena|MS": {
+		"lat": 33.4951269,
+		"lon": -90.3229458
+	},
+	"Montana State|Bozeman|MT": {
+		"lat": 45.6794293,
+		"lon": -111.044047
+	},
+	"Montana|Missoula|MT": {
+		"lat": 46.8701049,
+		"lon": -113.995267
+	},
+	"Morehead State|Morehead|KY": {
+		"lat": 38.1839705,
+		"lon": -83.4326841
+	},
+	"Morgan State|Baltimore|MD": {
+		"lat": 39.2908816,
+		"lon": -76.610759
+	},
+	"Mount St. Mary's|Emmitsburg|MD": {
+		"lat": 39.7045417,
+		"lon": -77.3269307
+	},
+	"New Hampshire|Durham|NH": {
+		"lat": 43.134564,
+		"lon": -70.927048
+	},
+	"New Orleans|New Orleans|LA": {
+		"lat": 29.9561422,
+		"lon": -90.0733934
+	},
+	"Niagara|Niagara University|NY": {
+		"lat": 43.1366031,
+		"lon": -79.0348892
+	},
+	"Nicholls|Thibodaux|LA": {
+		"lat": 29.7957633,
+		"lon": -90.822871
+	},
+	"Norfolk State|Norfolk|VA": {
+		"lat": 36.8493695,
+		"lon": -76.2899539
+	},
+	"North Alabama|Florence|AL": {
+		"lat": 34.79981,
+		"lon": -87.677251
+	},
+	"North Carolina A&T|Greensboro|NC": {
+		"lat": 36.0726355,
+		"lon": -79.7919754
+	},
+	"North Carolina Central|Durham|NC": {
+		"lat": 35.996653,
+		"lon": -78.9018053
+	},
+	"North Dakota State|Fargo|ND": {
+		"lat": 46.877229,
+		"lon": -96.789821
+	},
+	"North Dakota|Grand Forks|ND": {
+		"lat": 47.9252104,
+		"lon": -97.0306325
+	},
+	"North Florida|Jacksonville|FL": {
+		"lat": 30.3262247,
+		"lon": -81.6579179
+	},
+	"Northern Arizona|Flagstaff|AZ": {
+		"lat": 35.1987522,
+		"lon": -111.651822
+	},
+	"Northern Colorado|Greeley|CO": {
+		"lat": 40.4233142,
+		"lon": -104.7091322
+	},
+	"Northwestern State|Natchitoches|LA": {
+		"lat": 31.7606732,
+		"lon": -93.0860209
+	},
+	"Omaha|Omaha|NE": {
+		"lat": 41.2587459,
+		"lon": -95.9383758
+	},
+	"Oral Roberts|Tulsa|OK": {
+		"lat": 36.1563122,
+		"lon": -95.9927516
+	},
+	"Penn|Philadelphia|PA": {
+		"lat": 39.9527237,
+		"lon": -75.1635262
+	},
+	"Portland State|Portland|OR": {
+		"lat": 45.5202471,
+		"lon": -122.674194
+	},
+	"Prairie View A&M|Prairie View|TX": {
+		"lat": 30.0857916,
+		"lon": -95.9907058
+	},
+	"Presbyterian|Clinton|SC": {
+		"lat": 34.4726277,
+		"lon": -81.8806562
+	},
+	"Princeton|Princeton|NJ": {
+		"lat": 40.3496953,
+		"lon": -74.6597376
+	},
+	"Providence|Providence|RI": {
+		"lat": 41.8239891,
+		"lon": -71.4128343
+	},
+	"Quinnipiac|Hamden|CT": {
+		"lat": 41.3836233,
+		"lon": -72.9020069
+	},
+	"Radford|Radford|VA": {
+		"lat": 37.1343148,
+		"lon": -80.5749169
+	},
+	"Rider|Lawrenceville|NJ": {
+		"lat": 40.3009876,
+		"lon": -74.7373728
+	},
+	"Sacramento State|Sacramento|CA": {
+		"lat": 38.5810606,
+		"lon": -121.493895
+	},
+	"Sacred Heart|Fairfield|CT": {
+		"lat": 41.1412078,
+		"lon": -73.2637258
+	},
+	"Saint Peter's|Jersey City|NJ": {
+		"lat": 40.7215682,
+		"lon": -74.047455
+	},
+	"Samford|Homewood|AL": {
+		"lat": 33.4737098,
+		"lon": -86.8084509
+	},
+	"Seton Hall|South Orange|NJ": {
+		"lat": 40.7474966,
+		"lon": -74.2635376
+	},
+	"Siena|Loudonville|NY": {
+		"lat": 42.7032355,
+		"lon": -73.7636489
+	},
+	"South Carolina State|Orangeburg|SC": {
+		"lat": 33.4054944,
+		"lon": -80.778429
+	},
+	"South Dakota State|Brookings|SD": {
+		"lat": 44.311461,
+		"lon": -96.79844
+	},
+	"South Dakota|Vermillion|SD": {
+		"lat": 42.7795273,
+		"lon": -96.929101
+	},
+	"Southeastern Louisiana|Hammond|LA": {
+		"lat": 30.5043583,
+		"lon": -90.4611995
+	},
+	"Southern Indiana|Evansville|IN": {
+		"lat": 37.970495,
+		"lon": -87.5715641
+	},
+	"Southern Utah|Cedar City|UT": {
+		"lat": 37.6774238,
+		"lon": -113.061827
+	},
+	"Southern|Baton Rouge|LA": {
+		"lat": 30.4494155,
+		"lon": -91.1869659
+	},
+	"St. John's|Queens|NY": {
+		"lat": 40.7135078,
+		"lon": -73.8283132
+	},
+	"St. Thomas|Saint Paul|MN": {
+		"lat": 44.9497487,
+		"lon": -93.0931028
+	},
+	"Stephen F. Austin|Nacogdoches|TX": {
+		"lat": 31.5970503,
+		"lon": -94.5927451
+	},
+	"Stetson|DeLand|FL": {
+		"lat": 29.0281051,
+		"lon": -81.3034183
+	},
+	"Stonehill|Easton|MA": {
+		"lat": 42.0245442,
+		"lon": -71.1286594
+	},
+	"Tarleton State|Stephenville|TX": {
+		"lat": 32.2201387,
+		"lon": -98.2045388
+	},
+	"Tennessee State|Nashville|TN": {
+		"lat": 36.1622767,
+		"lon": -86.7742984
+	},
+	"Tennessee Tech|Cookeville|TN": {
+		"lat": 36.1623886,
+		"lon": -85.4997057
+	},
+	"Texas A&M\u2013Corpus Christi|Corpus Christi|TX": {
+		"lat": 27.7635302,
+		"lon": -97.4033191
+	},
+	"Texas Southern|Houston|TX": {
+		"lat": 29.7589382,
+		"lon": -95.3676974
+	},
+	"The Citadel|Charleston|SC": {
+		"lat": 32.7884363,
+		"lon": -79.9399309
+	},
+	"UC Davis|Davis|CA": {
+		"lat": 38.5435526,
+		"lon": -121.739005
+	},
+	"UC Irvine|Irvine|CA": {
+		"lat": 33.6856969,
+		"lon": -117.825981
+	},
+	"UC Riverside|Riverside|CA": {
+		"lat": 33.9824949,
+		"lon": -117.374238
+	},
+	"UC San Diego|La Jolla|CA": {
+		"lat": 32.8458529,
+		"lon": -117.2575702
+	},
+	"UC Santa Barbara|Santa Barbara|CA": {
+		"lat": 34.4221319,
+		"lon": -119.702667
+	},
+	"UConn|Storrs|CT": {
+		"lat": 41.8085955,
+		"lon": -72.2512807
+	},
+	"ULM|Monroe|LA": {
+		"lat": 32.5025471,
+		"lon": -92.116219
+	},
+	"Utah Tech|Saint George|UT": {
+		"lat": 37.1098813,
+		"lon": -113.5910512
+	},
+	"Utah Valley|Orem|UT": {
+		"lat": 40.2981599,
+		"lon": -111.6944313
+	},
+	"VMI|Lexington|VA": {
+		"lat": 37.7840208,
+		"lon": -79.4428157
+	},
+	"Vermont|Burlington|VT": {
+		"lat": 44.4761601,
+		"lon": -73.212906
+	},
+	"Villanova|Villanova|PA": {
+		"lat": 40.0373323,
+		"lon": -75.3490769
+	},
+	"Wagner|Staten Island|NY": {
+		"lat": 40.5834557,
+		"lon": -74.1496048
+	},
+	"Weber State|Ogden|UT": {
+		"lat": 41.2230048,
+		"lon": -111.9738429
+	},
+	"Western Carolina|Cullowhee|NC": {
+		"lat": 35.3137739,
+		"lon": -83.1765814
+	},
+	"Western Illinois|Macomb|IL": {
+		"lat": 40.4588934,
+		"lon": -90.6713939
+	},
+	"Winthrop|Rock Hill|SC": {
+		"lat": 34.9248667,
+		"lon": -81.0250784
+	},
+	"Wofford|Spartanburg|SC": {
+		"lat": 34.9498007,
+		"lon": -81.9320157
+	},
+	"Xavier|Cincinnati|OH": {
+		"lat": 39.1014537,
+		"lon": -84.5124602
+	},
+	"Yale|New Haven|CT": {
+		"lat": 41.3082138,
+		"lon": -72.9250518
+	}
+}

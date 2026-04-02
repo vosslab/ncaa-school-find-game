@@ -1,0 +1,137 @@
+School,Common name,Nickname,City,State,Type,Subdivision,Primary
+East Carolina University,East Carolina,Pirates[q],Greenville,NC,Public,FBS,American Conference
+Florida Atlantic University,Florida Atlantic,Owls,Boca Raton,FL,Public,FBS,American Conference
+Temple University,Temple,Owls,Philadelphia,PA,Public[O 3],FBS,American Conference
+The University of Texas at San Antonio,UTSA,Roadrunners,San Antonio,TX,Public,FBS,American Conference
+The University of Tulsa,Tulsa,Golden Hurricane,Tulsa,OK,Private,FBS,American Conference
+Tulane University of Louisiana,Tulane,Green Wave,New Orleans,LA,Private,FBS,American Conference
+University of Alabama at Birmingham,UAB,Blazers,Birmingham,AL,Public,FBS,American Conference
+University of Memphis,Memphis,Tigers,Memphis,TN,Public,FBS,American Conference
+University of North Carolina at Charlotte,Charlotte,49ers,Charlotte,NC,Public,FBS,American Conference
+University of North Texas,North Texas,Mean Green,Denton,TX,Public,FBS,American Conference
+University of South Florida,South Florida,Bulls,Tampa,FL,Public,FBS,American Conference
+William Marsh Rice University,Rice,Owls,Houston,TX,Private,FBS,American Conference
+Boston College,Boston College,Eagles,Chestnut Hill[L 3],MA,Private,FBS,Atlantic Coast Conference
+Clemson University,Clemson,Tigers,Clemson,SC,Public,FBS,Atlantic Coast Conference
+Duke University,Duke,Blue Devils,Durham,NC,Private,FBS,Atlantic Coast Conference
+Florida State University,Florida State,Seminoles,Tallahassee,FL,Public,FBS,Atlantic Coast Conference
+Georgia Institute of Technology,Georgia Tech,Yellow Jackets,Atlanta,GA,Public,FBS,Atlantic Coast Conference
+Leland Stanford Junior University,Stanford,Cardinal,Stanford,CA,Private,FBS,Atlantic Coast Conference
+North Carolina State University,NC State,Wolfpack,Raleigh,NC,Public,FBS,Atlantic Coast Conference
+Southern Methodist University,SMU,Mustangs,Dallas[L 16],TX,Private,FBS,Atlantic Coast Conference
+Syracuse University,Syracuse,Orange,Syracuse,NY,Private,FBS,Atlantic Coast Conference
+"University of California, Berkeley",California,Golden Bears,Berkeley,CA,Public,FBS,Atlantic Coast Conference
+University of Louisville,Louisville,Cardinals,Louisville,KY,Public,FBS,Atlantic Coast Conference
+University of Miami,Miami (Florida),Hurricanes,Coral Gables,FL,Private,FBS,Atlantic Coast Conference
+University of North Carolina at Chapel Hill,North Carolina,Tar Heels,Chapel Hill,NC,Public,FBS,Atlantic Coast Conference
+University of Pittsburgh,Pittsburgh,Panthers,Pittsburgh,PA,Public[O 3],FBS,Atlantic Coast Conference
+University of Virginia,Virginia,Cavaliers,Charlottesville[L 29],VA,Public,FBS,Atlantic Coast Conference
+Virginia Polytechnic Institute and State University,Virginia Tech,Hokies,Blacksburg,VA,Public,FBS,Atlantic Coast Conference
+Wake Forest University,Wake Forest,Demon Deacons,Winston-Salem,NC,Private,FBS,Atlantic Coast Conference
+University of Notre Dame du Lac,Notre Dame,Fighting Irish,Notre Dame,IN,Private,FBS,Atlantic Coast Conference[FB 16]
+Arizona State University,Arizona State,Sun Devils,Tempe[L 2],AZ,Public,FBS,Big 12 Conference
+Baylor University,Baylor,Bears,Waco,TX,Private,FBS,Big 12 Conference
+Brigham Young University,BYU,Cougars,Provo,UT,Private,FBS,Big 12 Conference
+Iowa State University of Science and Technology[N 6],Iowa State,Cyclones,Ames,IA,Public,FBS,Big 12 Conference
+Kansas State University,Kansas State,Wildcats,Manhattan,KS,Public,FBS,Big 12 Conference
+Oklahoma State University–Stillwater,Oklahoma State,Cowboys[ah],Stillwater,OK,Public,FBS,Big 12 Conference
+Texas Christian University,TCU,Horned Frogs,Fort Worth,TX,Private,FBS,Big 12 Conference
+Texas Tech University,Texas Tech,Red Raiders[at],Lubbock,TX,Public,FBS,Big 12 Conference
+University of Arizona,Arizona,Wildcats,Tucson,AZ,Public,FBS,Big 12 Conference
+University of Central Florida,UCF,Knights,Orlando[L 23],FL,Public,FBS,Big 12 Conference
+University of Cincinnati,Cincinnati,Bearcats,Cincinnati,OH,Public,FBS,Big 12 Conference
+University of Colorado Boulder,Colorado,Buffaloes,Boulder,CO,Public,FBS,Big 12 Conference
+University of Houston,Houston,Cougars,Houston,TX,Public,FBS,Big 12 Conference
+University of Kansas,Kansas,Jayhawks,Lawrence,KS,Public,FBS,Big 12 Conference
+University of Utah,Utah,Utes[ay],Salt Lake City,UT,Public,FBS,Big 12 Conference
+West Virginia University,West Virginia,Mountaineers,Morgantown,WV,Public,FBS,Big 12 Conference
+University of Connecticut,UConn,Huskies,Storrs,CT,Public,FBS,Big East Conference[FB 4]
+Indiana University Bloomington,Indiana,Hoosiers,Bloomington,IN,Public,FBS,Big Ten Conference
+Michigan State University,Michigan State,Spartans,East Lansing,MI,Public,FBS,Big Ten Conference
+Northwestern University,Northwestern,Wildcats,Evanston,IL,Private,FBS,Big Ten Conference
+Purdue University,Purdue,Boilermakers,West Lafayette,IN,Public,FBS,Big Ten Conference
+Rutgers University–New Brunswick,Rutgers,Scarlet Knights,New Brunswick[L 14],NJ,Public,FBS,Big Ten Conference
+State University of Iowa[N 11],Iowa,Hawkeyes,Iowa City,IA,Public,FBS,Big Ten Conference
+The Ohio State University,Ohio State,Buckeyes,Columbus,OH,Public,FBS,Big Ten Conference
+The Pennsylvania State University,Penn State,Nittany Lions[ap],University Park[L 19],PA,Public[O 3],FBS,Big Ten Conference
+"University of California, Los Angeles",UCLA,Bruins,Los Angeles,CA,Public,FBS,Big Ten Conference
+University of Illinois Urbana-Champaign,Illinois,Fighting Illini,Urbana[L 24],IL,Public,FBS,Big Ten Conference
+"University of Maryland, College Park",Maryland,Terrapins,College Park,MD,Public,FBS,Big Ten Conference
+University of Michigan,Michigan,Wolverines,Ann Arbor,MI,Public,FBS,Big Ten Conference
+University of Minnesota,Minnesota,Golden Gophers,Minneapolis,MN,Public,FBS,Big Ten Conference
+University of Nebraska–Lincoln,Nebraska,Cornhuskers,Lincoln,NE,Public,FBS,Big Ten Conference
+University of Oregon,Oregon,Ducks,Eugene,OR,Public,FBS,Big Ten Conference
+University of Southern California,USC[N 27],Trojans[ax],Los Angeles,CA,Private,FBS,Big Ten Conference
+University of Washington,Washington,Huskies,Seattle,WA,Public,FBS,Big Ten Conference
+University of Wisconsin–Madison,Wisconsin,Badgers,Madison,WI,Public,FBS,Big Ten Conference
+University of Hawaiʻi at Mānoa,Hawaiʻi,Rainbow Warriors[w],Honolulu,HI,Public,FBS,Big West Conference[FB 5][C 11]
+Florida International University,FIU,Panthers,Miami[L 5],FL,Public,FBS,Conference USA
+Jacksonville State University,Jax State,Gamecocks,Jacksonville,AL,Public,FBS,Conference USA
+Kennesaw State University,Kennesaw State,Owls,Kennesaw[L 8],GA,Public,FBS,Conference USA
+Liberty University,Liberty,Flames[ac],Lynchburg,VA,Private,FBS,Conference USA
+Middle Tennessee State University,Middle Tennessee,Blue Raiders,Murfreesboro,TN,Public,FBS,Conference USA
+Missouri State University,Missouri State,Bears[aj],Springfield,MO,Public,FBS,Conference USA
+New Mexico State University,New Mexico State,Aggies,Las Cruces,NM,Public,FBS,Conference USA
+Sam Houston State University,Sam Houston,Bearkats,Huntsville,TX,Public,FBS,Conference USA
+University of Delaware,Delaware,Fightin' Blue Hens,Newark,DE,Public[O 1],FBS,Conference USA
+Western Kentucky University,Western Kentucky,Hilltoppers[az],Bowling Green,KY,Public,FBS,Conference USA
+The University of Texas at El Paso,UTEP,Miners,El Paso,TX,Public,FBS,Conference USA[C 11]
+Louisiana Tech University,Louisiana Tech,Bulldogs[ae],Ruston,LA,Public,FBS,Conference USA[C 6]
+Ball State University,Ball State,Cardinals,Muncie,IN,Public,FBS,Mid-American Conference
+Bowling Green State University,Bowling Green,Falcons,Bowling Green,OH,Public,FBS,Mid-American Conference
+Central Michigan University,Central Michigan,Chippewas,Mount Pleasant,MI,Public,FBS,Mid-American Conference
+Eastern Michigan University,Eastern Michigan,Eagles,Ypsilanti,MI,Public,FBS,Mid-American Conference
+Kent State University,Kent State,Golden Flashes,Kent,OH,Public,FBS,Mid-American Conference
+Miami University,Miami (Ohio),RedHawks,Oxford,OH,Public,FBS,Mid-American Conference
+State University of New York at Buffalo[N 15],Buffalo,Bulls,Buffalo[L 18],NY,Public,FBS,Mid-American Conference
+The Ohio University,Ohio,Bobcats,Athens,OH,Public,FBS,Mid-American Conference
+The University of Akron,Akron,Zips,Akron,OH,Public,FBS,Mid-American Conference
+University of Massachusetts Amherst,UMass / Massachusetts[N 23],Minutemen[au],Amherst,MA,Public,FBS,Mid-American Conference
+University of Toledo,Toledo,Rockets,Toledo,OH,Public,FBS,Mid-American Conference
+Western Michigan University,Western Michigan,Broncos,Kalamazoo,MI,Public,FBS,Mid-American Conference
+Northern Illinois University,Northern Illinois,Huskies,DeKalb,IL,Public,FBS,Mid-American Conference[C 7]
+San Jose State University,San Jose State,Spartans,San Jose,CA,Public,FBS,Mountain West Conference
+The University of New Mexico,New Mexico,Lobos,Albuquerque,NM,Public,FBS,Mountain West Conference
+United States Air Force Academy,Air Force,Falcons,USAF Academy[L 21],CO,Federal,FBS,Mountain West Conference
+"University of Nevada, Las Vegas",UNLV,Rebels[aw],Paradise[L 27],NV,Public,FBS,Mountain West Conference
+"University of Nevada, Reno",Nevada,Wolf Pack,Reno,NV,Public,FBS,Mountain West Conference
+University of Wyoming,Wyoming,Cowboys[ai],Laramie,WY,Public,FBS,Mountain West Conference
+Boise State University,Boise State,Broncos,Boise,ID,Public,FBS,Mountain West Conference[C 3]
+"California State University, Fresno",Fresno State,Bulldogs,Fresno,CA,Public,FBS,Mountain West Conference[C 3]
+Colorado State University,Colorado State,Rams,Fort Collins,CO,Public,FBS,Mountain West Conference[C 3]
+San Diego State University,San Diego State,Aztecs,San Diego,CA,Public,FBS,Mountain West Conference[C 3]
+Utah State University,Utah State,Aggies,Logan,UT,Public,FBS,Mountain West Conference[C 3]
+Oregon State University,Oregon State,Beavers,Corvallis,OR,Public,FBS,Pac-12 Conference[O 2]
+Washington State University,Washington State,Cougars,Pullman,WA,Public,FBS,Pac-12 Conference[O 2]
+United States Military Academy,Army / Army West Point[N 21],Black Knights,West Point,NY,Federal,FBS,Patriot League[FB 15]
+United States Naval Academy,Navy,Midshipmen,Annapolis,MD,Federal,FBS,Patriot League[FB 15]
+Auburn University,Auburn,Tigers,Auburn,AL,Public,FBS,Southeastern Conference
+Louisiana State University and Agricultural and Mechanical College,LSU,Tigers[v],Baton Rouge,LA,Public,FBS,Southeastern Conference
+Mississippi State University[N 7],Mississippi State,Bulldogs,Mississippi State,MS,Public,FBS,Southeastern Conference
+Texas A&M University,Texas A&M,Aggies,College Station,TX,Public,FBS,Southeastern Conference
+The University of Alabama,Alabama,Crimson Tide,Tuscaloosa,AL,Public,FBS,Southeastern Conference
+The University of Mississippi,Ole Miss,Rebels,University,MS,Public,FBS,Southeastern Conference
+"The University of Tennessee, Knoxville",Tennessee,Volunteers[as],Knoxville,TN,Public,FBS,Southeastern Conference
+The University of Texas at Austin,Texas,Longhorns,Austin,TX,Public,FBS,Southeastern Conference
+University of Arkansas,Arkansas,Razorbacks,Fayetteville,AR,Public,FBS,Southeastern Conference
+University of Florida,Florida,Gators,Gainesville,FL,Public,FBS,Southeastern Conference
+University of Georgia,Georgia,Bulldogs[h],Athens,GA,Public,FBS,Southeastern Conference
+University of Kentucky,Kentucky,Wildcats,Lexington,KY,Public,FBS,Southeastern Conference
+University of Missouri–Columbia[N 24],Missouri,Tigers,Columbia,MO,Public,FBS,Southeastern Conference
+University of Oklahoma,Oklahoma,Sooners,Norman,OK,Public,FBS,Southeastern Conference
+University of South Carolina,South Carolina,Gamecocks,Columbia,SC,Public,FBS,Southeastern Conference
+Vanderbilt University,Vanderbilt,Commodores,Nashville,TN,Private,FBS,Southeastern Conference
+Appalachian State University,Appalachian State,Mountaineers,Boone,NC,Public,FBS,Sun Belt Conference
+Arkansas State University,Arkansas State,Red Wolves,Jonesboro,AR,Public,FBS,Sun Belt Conference
+Coastal Carolina University,Coastal Carolina,Chanticleers,Conway,SC,Public,FBS,Sun Belt Conference
+Georgia Southern University,Georgia Southern,Eagles[u],Statesboro,GA,Public,FBS,Sun Belt Conference
+Georgia State University,Georgia State,Panthers,Atlanta,GA,Public,FBS,Sun Belt Conference
+James Madison University,James Madison,Dukes,Harrisonburg,VA,Public,FBS,Sun Belt Conference
+Marshall University,Marshall,Thundering Herd,Huntington,WV,Public,FBS,Sun Belt Conference
+Old Dominion University,Old Dominion,Monarchs,Norfolk,VA,Public,FBS,Sun Belt Conference
+Troy University,Troy,Trojans,Troy,AL,Public,FBS,Sun Belt Conference
+University of Louisiana at Lafayette,Louisiana,Ragin' Cajuns,Lafayette,LA,Public,FBS,Sun Belt Conference
+University of Louisiana at Monroe,ULM[N 22],Warhawks,Monroe,LA,Public,FBS,Sun Belt Conference
+University of South Alabama,South Alabama,Jaguars,Mobile,AL,Public,FBS,Sun Belt Conference
+University of Southern Mississippi,Southern Miss,Golden Eagles[u],Hattiesburg,MS,Public,FBS,Sun Belt Conference
+Texas State University,Texas State,Bobcats,San Marcos,TX,Public,FBS,Sun Belt Conference[C 3]

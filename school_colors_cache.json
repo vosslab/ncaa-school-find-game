@@ -1,0 +1,714 @@
+{
+	"Abilene Christian": {
+		"primary": "#4F2683",
+		"secondary": "#FFFFFF"
+	},
+	"Akron": {
+		"primary": "#041E42",
+		"secondary": "#A89968"
+	},
+	"Albany": {
+		"primary": "#461D7C",
+		"secondary": "#EAAA00"
+	},
+	"Alcorn State": {
+		"primary": "#4F2683",
+		"secondary": "#F0AB00"
+	},
+	"American": {
+		"primary": "#003DA5",
+		"secondary": "#CC0000"
+	},
+	"Arkansas\u2013Pine Bluff": {
+		"primary": "#000000",
+		"secondary": "#F0AB00"
+	},
+	"BYU": {
+		"primary": "#002E5D",
+		"secondary": "#FFFFFF"
+	},
+	"Bakersfield": {
+		"primary": "#003DA5",
+		"secondary": "#F0AB00"
+	},
+	"Bellarmine": {
+		"primary": "#9E1B32",
+		"secondary": "#FFFFFF"
+	},
+	"Belmont": {
+		"primary": "#003366",
+		"secondary": "#CC0000"
+	},
+	"Bethune\u2013Cookman": {
+		"primary": "#800000",
+		"secondary": "#F0AB00"
+	},
+	"Binghamton": {
+		"primary": "#005943",
+		"secondary": "#FFFFFF"
+	},
+	"Boston University": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"Brown": {
+		"primary": "#4E3629",
+		"secondary": "#CC0000"
+	},
+	"Bryant": {
+		"primary": "#000000",
+		"secondary": "#D4AF37"
+	},
+	"Bucknell": {
+		"primary": "#F47920",
+		"secondary": "#003366"
+	},
+	"Butler": {
+		"primary": "#13294B",
+		"secondary": "#FFFFFF"
+	},
+	"Cal Baptist": {
+		"primary": "#003366",
+		"secondary": "#C5960C"
+	},
+	"Cal Poly": {
+		"primary": "#1F4F2E",
+		"secondary": "#C5960C"
+	},
+	"California": {
+		"primary": "#003262",
+		"secondary": "#FDB515"
+	},
+	"Canisius": {
+		"primary": "#003399",
+		"secondary": "#F0AB00"
+	},
+	"Central Arkansas": {
+		"primary": "#4F2D7F",
+		"secondary": "#808080"
+	},
+	"Central Connecticut": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"Charleston Southern": {
+		"primary": "#003087",
+		"secondary": "#BF9B30"
+	},
+	"Chicago State": {
+		"primary": "#006633",
+		"secondary": "#FFFFFF"
+	},
+	"Colgate": {
+		"primary": "#800000",
+		"secondary": "#FFFFFF"
+	},
+	"Columbia": {
+		"primary": "#1D4F91",
+		"secondary": "#A0A0A0"
+	},
+	"Coppin State": {
+		"primary": "#003DA5",
+		"secondary": "#F0AB00"
+	},
+	"Cornell": {
+		"primary": "#B31B1B",
+		"secondary": "#FFFFFF"
+	},
+	"Dartmouth": {
+		"primary": "#00693E",
+		"secondary": "#FFFFFF"
+	},
+	"DePaul": {
+		"primary": "#003DA5",
+		"secondary": "#CC0000"
+	},
+	"Delaware": {
+		"primary": "#00539F",
+		"secondary": "#FFD200"
+	},
+	"Delaware State": {
+		"primary": "#CC0000",
+		"secondary": "#003399"
+	},
+	"Denver": {
+		"primary": "#8B2332",
+		"secondary": "#C5960C"
+	},
+	"Drake": {
+		"primary": "#004477",
+		"secondary": "#FFFFFF"
+	},
+	"Duke": {
+		"primary": "#003087",
+		"secondary": "#FFFFFF"
+	},
+	"East Tennessee State": {
+		"primary": "#041E42",
+		"secondary": "#F0AB00"
+	},
+	"East Texas A&M": {
+		"primary": "#003399",
+		"secondary": "#F0AB00"
+	},
+	"Eastern Illinois": {
+		"primary": "#004B83",
+		"secondary": "#808080"
+	},
+	"Eastern Kentucky": {
+		"primary": "#861F41",
+		"secondary": "#FFFFFF"
+	},
+	"Eastern Washington": {
+		"primary": "#A10022",
+		"secondary": "#000000"
+	},
+	"FGCU": {
+		"primary": "#002D72",
+		"secondary": "#00A651"
+	},
+	"Fairfield": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"Fairleigh Dickinson": {
+		"primary": "#042B68",
+		"secondary": "#FFFFFF"
+	},
+	"Florida A&M": {
+		"primary": "#F47920",
+		"secondary": "#046A38"
+	},
+	"Florida Atlantic": {
+		"primary": "#003366",
+		"secondary": "#CC0000"
+	},
+	"Furman": {
+		"primary": "#582C83",
+		"secondary": "#FFFFFF"
+	},
+	"Gardner\u2013Webb": {
+		"primary": "#CC0000",
+		"secondary": "#000000"
+	},
+	"Georgetown": {
+		"primary": "#041E42",
+		"secondary": "#808080"
+	},
+	"Grambling State": {
+		"primary": "#000000",
+		"secondary": "#F0AB00"
+	},
+	"Harvard": {
+		"primary": "#A51C30",
+		"secondary": "#000000"
+	},
+	"Hawai\u02bbi": {
+		"primary": "#024731",
+		"secondary": "#000000"
+	},
+	"High Point": {
+		"primary": "#4F2683",
+		"secondary": "#000000"
+	},
+	"Holy Cross": {
+		"primary": "#602D89",
+		"secondary": "#FFFFFF"
+	},
+	"Houston Christian": {
+		"primary": "#FF6600",
+		"secondary": "#003399"
+	},
+	"Howard": {
+		"primary": "#003399",
+		"secondary": "#CC0000"
+	},
+	"IU Indy": {
+		"primary": "#CC0000",
+		"secondary": "#C5960C"
+	},
+	"Idaho": {
+		"primary": "#B5985A",
+		"secondary": "#000000"
+	},
+	"Idaho State": {
+		"primary": "#FF6600",
+		"secondary": "#000000"
+	},
+	"Incarnate Word": {
+		"primary": "#CC0000",
+		"secondary": "#000000"
+	},
+	"Indiana State": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"Iona": {
+		"primary": "#800000",
+		"secondary": "#F0AB00"
+	},
+	"Jackson State": {
+		"primary": "#003399",
+		"secondary": "#FFFFFF"
+	},
+	"Jacksonville": {
+		"primary": "#00583A",
+		"secondary": "#FFFFFF"
+	},
+	"Jax State": {
+		"primary": "#CC0000",
+		"secondary": "#A0A0A0"
+	},
+	"Kansas City": {
+		"primary": "#003DA5",
+		"secondary": "#F0AB00"
+	},
+	"Kentucky": {
+		"primary": "#0033A0",
+		"secondary": "#FFFFFF"
+	},
+	"LIU": {
+		"primary": "#004C97",
+		"secondary": "#DAA520"
+	},
+	"La Salle": {
+		"primary": "#003399",
+		"secondary": "#F0AB00"
+	},
+	"Lafayette": {
+		"primary": "#800000",
+		"secondary": "#FFFFFF"
+	},
+	"Lamar": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"Lehigh": {
+		"primary": "#502D0E",
+		"secondary": "#FFFFFF"
+	},
+	"Lindenwood": {
+		"primary": "#000000",
+		"secondary": "#F0AB00"
+	},
+	"Lipscomb": {
+		"primary": "#461D7C",
+		"secondary": "#F0AB00"
+	},
+	"Little Rock": {
+		"primary": "#800000",
+		"secondary": "#808080"
+	},
+	"Long Beach State": {
+		"primary": "#000000",
+		"secondary": "#F0AB00"
+	},
+	"Longwood": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"Loyola": {
+		"primary": "#00694E",
+		"secondary": "#808080"
+	},
+	"Maine": {
+		"primary": "#003263",
+		"secondary": "#B0D7FF"
+	},
+	"Manhattan": {
+		"primary": "#006633",
+		"secondary": "#FFFFFF"
+	},
+	"Marist": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"Marquette": {
+		"primary": "#003366",
+		"secondary": "#F0AB00"
+	},
+	"Maryland Eastern Shore": {
+		"primary": "#800000",
+		"secondary": "#808080"
+	},
+	"McNeese": {
+		"primary": "#003DA5",
+		"secondary": "#F0AB00"
+	},
+	"Merrimack": {
+		"primary": "#002D72",
+		"secondary": "#DAA520"
+	},
+	"Miami (Florida)": {
+		"primary": "#F47321",
+		"secondary": "#005030"
+	},
+	"Mississippi Valley State": {
+		"primary": "#006747",
+		"secondary": "#FFFFFF"
+	},
+	"Monmouth": {
+		"primary": "#002D72",
+		"secondary": "#FFFFFF"
+	},
+	"Montana": {
+		"primary": "#660033",
+		"secondary": "#808080"
+	},
+	"Montana State": {
+		"primary": "#003875",
+		"secondary": "#D4AF37"
+	},
+	"Morehead State": {
+		"primary": "#003399",
+		"secondary": "#F0AB00"
+	},
+	"Morgan State": {
+		"primary": "#F47920",
+		"secondary": "#003399"
+	},
+	"Mount St. Mary's": {
+		"primary": "#003399",
+		"secondary": "#FFFFFF"
+	},
+	"NJIT": {
+		"primary": "#CC0000",
+		"secondary": "#003399"
+	},
+	"Navy": {
+		"primary": "#00205B",
+		"secondary": "#C5B358"
+	},
+	"Nevada": {
+		"primary": "#003366",
+		"secondary": "#82899A"
+	},
+	"New Hampshire": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"New Orleans": {
+		"primary": "#003DA5",
+		"secondary": "#808080"
+	},
+	"Niagara": {
+		"primary": "#4F2683",
+		"secondary": "#FFFFFF"
+	},
+	"Nicholls": {
+		"primary": "#CC0000",
+		"secondary": "#808080"
+	},
+	"Norfolk State": {
+		"primary": "#007A33",
+		"secondary": "#D4AF37"
+	},
+	"North Alabama": {
+		"primary": "#461D7C",
+		"secondary": "#FFFFFF"
+	},
+	"North Carolina A&T": {
+		"primary": "#004684",
+		"secondary": "#F0AB00"
+	},
+	"North Carolina Central": {
+		"primary": "#800000",
+		"secondary": "#808080"
+	},
+	"North Dakota": {
+		"primary": "#009A44",
+		"secondary": "#FFFFFF"
+	},
+	"North Dakota State": {
+		"primary": "#006340",
+		"secondary": "#F0AB00"
+	},
+	"North Florida": {
+		"primary": "#003399",
+		"secondary": "#808080"
+	},
+	"Northern Arizona": {
+		"primary": "#003466",
+		"secondary": "#006340"
+	},
+	"Northern Colorado": {
+		"primary": "#013C65",
+		"secondary": "#F0CB00"
+	},
+	"Northwestern State": {
+		"primary": "#4F2683",
+		"secondary": "#F47920"
+	},
+	"Notre Dame": {
+		"primary": "#0C2340",
+		"secondary": "#C99700"
+	},
+	"Omaha": {
+		"primary": "#000000",
+		"secondary": "#CC0000"
+	},
+	"Oral Roberts": {
+		"primary": "#003366",
+		"secondary": "#C4960C"
+	},
+	"Penn": {
+		"primary": "#011F5B",
+		"secondary": "#990000"
+	},
+	"Pittsburgh": {
+		"primary": "#003594",
+		"secondary": "#FFB81C"
+	},
+	"Portland State": {
+		"primary": "#154733",
+		"secondary": "#FFFFFF"
+	},
+	"Prairie View A&M": {
+		"primary": "#4F2683",
+		"secondary": "#F0AB00"
+	},
+	"Presbyterian": {
+		"primary": "#00205B",
+		"secondary": "#808080"
+	},
+	"Providence": {
+		"primary": "#000000",
+		"secondary": "#FFFFFF"
+	},
+	"Queens (NC)": {
+		"primary": "#002D72",
+		"secondary": "#808080"
+	},
+	"Quinnipiac": {
+		"primary": "#003366",
+		"secondary": "#F0AB00"
+	},
+	"Radford": {
+		"primary": "#CC0000",
+		"secondary": "#003366"
+	},
+	"Rhode Island": {
+		"primary": "#75B2DD",
+		"secondary": "#002147"
+	},
+	"Rider": {
+		"primary": "#9E1B32",
+		"secondary": "#808080"
+	},
+	"Robert Morris": {
+		"primary": "#003366",
+		"secondary": "#CC0000"
+	},
+	"SEMO": {
+		"primary": "#CC0000",
+		"secondary": "#000000"
+	},
+	"SIUE": {
+		"primary": "#CC0000",
+		"secondary": "#000000"
+	},
+	"Sacramento State": {
+		"primary": "#043927",
+		"secondary": "#C4B581"
+	},
+	"Sacred Heart": {
+		"primary": "#CC0000",
+		"secondary": "#808080"
+	},
+	"Saint Louis": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"Saint Mary's": {
+		"primary": "#CC0000",
+		"secondary": "#003366"
+	},
+	"Saint Peter's": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"San Diego": {
+		"primary": "#002D62",
+		"secondary": "#87CEEB"
+	},
+	"Seton Hall": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"Siena": {
+		"primary": "#006633",
+		"secondary": "#F0AB00"
+	},
+	"South Carolina State": {
+		"primary": "#800000",
+		"secondary": "#003399"
+	},
+	"South Dakota": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"South Dakota State": {
+		"primary": "#003DA5",
+		"secondary": "#F0AB00"
+	},
+	"Southeastern Louisiana": {
+		"primary": "#046A38",
+		"secondary": "#F0AB00"
+	},
+	"Southern Indiana": {
+		"primary": "#CC0000",
+		"secondary": "#003DA5"
+	},
+	"Southern Utah": {
+		"primary": "#CC0000",
+		"secondary": "#003399"
+	},
+	"St. John's": {
+		"primary": "#CC0000",
+		"secondary": "#FFFFFF"
+	},
+	"St. Thomas": {
+		"primary": "#4F2683",
+		"secondary": "#808080"
+	},
+	"Stephen F. Austin": {
+		"primary": "#4F2683",
+		"secondary": "#FFFFFF"
+	},
+	"Stetson": {
+		"primary": "#006747",
+		"secondary": "#FFFFFF"
+	},
+	"Stonehill": {
+		"primary": "#461D7C",
+		"secondary": "#FFFFFF"
+	},
+	"Tarleton State": {
+		"primary": "#4F2683",
+		"secondary": "#FFFFFF"
+	},
+	"Tennessee State": {
+		"primary": "#003399",
+		"secondary": "#FFFFFF"
+	},
+	"Tennessee Tech": {
+		"primary": "#4F2683",
+		"secondary": "#F0AB00"
+	},
+	"Texas A&M\u2013Corpus Christi": {
+		"primary": "#003DA5",
+		"secondary": "#006633"
+	},
+	"Texas Southern": {
+		"primary": "#800000",
+		"secondary": "#808080"
+	},
+	"The Citadel": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"UC Davis": {
+		"primary": "#002855",
+		"secondary": "#DAAA00"
+	},
+	"UC San Diego": {
+		"primary": "#003366",
+		"secondary": "#C4960C"
+	},
+	"UC Santa Barbara": {
+		"primary": "#003660",
+		"secondary": "#FEBC11"
+	},
+	"UCLA": {
+		"primary": "#2D68C4",
+		"secondary": "#F2A900"
+	},
+	"UConn": {
+		"primary": "#000E2F",
+		"secondary": "#A2AAAD"
+	},
+	"ULM": {
+		"primary": "#800000",
+		"secondary": "#D4A017"
+	},
+	"UMBC": {
+		"primary": "#000000",
+		"secondary": "#F0AB00"
+	},
+	"UMass / Massachusetts": {
+		"primary": "#881C1C",
+		"secondary": "#000000"
+	},
+	"UMass Lowell": {
+		"primary": "#003DA5",
+		"secondary": "#CC0000"
+	},
+	"UNC Asheville": {
+		"primary": "#003DA5",
+		"secondary": "#FFFFFF"
+	},
+	"USC Upstate": {
+		"primary": "#006340",
+		"secondary": "#000000"
+	},
+	"UT Arlington": {
+		"primary": "#003DA5",
+		"secondary": "#F47920"
+	},
+	"UT Martin": {
+		"primary": "#FF6600",
+		"secondary": "#003366"
+	},
+	"UTRGV": {
+		"primary": "#003399",
+		"secondary": "#F47920"
+	},
+	"Utah Tech": {
+		"primary": "#CC0000",
+		"secondary": "#003399"
+	},
+	"Utah Valley": {
+		"primary": "#275D38",
+		"secondary": "#FFFFFF"
+	},
+	"VMI": {
+		"primary": "#CC0000",
+		"secondary": "#F0AB00"
+	},
+	"Vermont": {
+		"primary": "#003300",
+		"secondary": "#F0AB00"
+	},
+	"Virginia": {
+		"primary": "#232D4B",
+		"secondary": "#F84C1E"
+	},
+	"Wagner": {
+		"primary": "#154734",
+		"secondary": "#FFFFFF"
+	},
+	"Weber State": {
+		"primary": "#4B2682",
+		"secondary": "#FFFFFF"
+	},
+	"West Virginia": {
+		"primary": "#002855",
+		"secondary": "#EAAA00"
+	},
+	"Western Illinois": {
+		"primary": "#4F2683",
+		"secondary": "#F0AB00"
+	},
+	"Wofford": {
+		"primary": "#886B3D",
+		"secondary": "#000000"
+	},
+	"Xavier": {
+		"primary": "#003366",
+		"secondary": "#808080"
+	},
+	"Yale": {
+		"primary": "#00356B",
+		"secondary": "#FFFFFF"
+	}
+}

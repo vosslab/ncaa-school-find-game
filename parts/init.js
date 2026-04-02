@@ -2,22 +2,27 @@
 // Wires up all event handlers and initializes the game.
 
 //============================================
-function getConferencesForTier(tierName) {
-	// "All Conferences" combines every tier
-	if (tierName === "All Conferences") {
-		var all = [];
-		for (var i = 0; i < CONFERENCE_TIERS.length; i++) {
-			var confs = CONFERENCE_TIERS[i].conferences;
-			for (var j = 0; j < confs.length; j++) {
-				all.push(confs[j]);
-			}
+function getSchoolsForTier(tierName) {
+	// Find the tier definition matching the given name
+	for (var i = 0; i < DIFFICULTY_TIERS.length; i++) {
+		var tier = DIFFICULTY_TIERS[i];
+		if (tier.name !== tierName) {
+			continue;
 		}
-		return all;
-	}
-	// Look up the conference list for a single tier
-	for (var i = 0; i < CONFERENCE_TIERS.length; i++) {
-		if (CONFERENCE_TIERS[i].name === tierName) {
-			return CONFERENCE_TIERS[i].conferences;
+		// Filter schools based on tier type
+		if (tier.type === "all") {
+			return NCAA_SCHOOLS.slice();
+		}
+		var values = tier.values;
+		if (tier.type === "conference") {
+			return NCAA_SCHOOLS.filter(function(school) {
+				return values.indexOf(school.conference) !== -1;
+			});
+		}
+		if (tier.type === "subdivision") {
+			return NCAA_SCHOOLS.filter(function(school) {
+				return values.indexOf(school.subdivision) !== -1;
+			});
 		}
 	}
 	return [];
@@ -25,15 +30,9 @@ function getConferencesForTier(tierName) {
 
 //============================================
 function countSchoolsForTier(tierName) {
-	// Count how many schools belong to the conferences in a tier
-	var conferences = getConferencesForTier(tierName);
-	var count = 0;
-	for (var i = 0; i < NCAA_SCHOOLS.length; i++) {
-		if (conferences.indexOf(NCAA_SCHOOLS[i].conference) !== -1) {
-			count++;
-		}
-	}
-	return count;
+	// Count how many schools belong to the selected tier
+	var schools = getSchoolsForTier(tierName);
+	return schools.length;
 }
 
 //============================================
@@ -123,12 +122,12 @@ document.addEventListener("DOMContentLoaded", function() {
 				errorEl.style.display = "none";
 			}
 
-			// Look up conferences for the selected tier
+			// Get filtered schools for the selected tier
 			var tierName = selectedRadio.value;
-			var conferences = getConferencesForTier(tierName);
+			var filteredSchools = getSchoolsForTier(tierName);
 
-			// Start the game with the tier's conferences
-			startGame(conferences, tierName);
+			// Start the game with the filtered schools
+			startGame(filteredSchools, tierName);
 
 			// Show game screen
 			showScreen("game");

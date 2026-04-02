@@ -51,6 +51,7 @@ def parse_schools(js_content: str) -> list:
 			"name": get_field("name", block),
 			"shortName": short_name,
 			"conference": get_field("conference", block),
+			"subdivision": get_field("subdivision", block),
 			"lat": get_num("lat", block),
 			"lon": get_num("lon", block),
 			"colorPrimary": get_field("colorPrimary", block),
@@ -282,30 +283,41 @@ def main():
 	state_paths = parse_state_paths(map_data_content)
 	print(f"Parsed {len(all_schools)} schools and {len(state_paths)} states")
 
-	# Parse tier definitions from the CONFERENCE_TIERS section only
-	tiers_start = constants_content.find("var CONFERENCE_TIERS")
+	# Parse tier definitions from the DIFFICULTY_TIERS section
+	tiers_start = constants_content.find("var DIFFICULTY_TIERS")
 	tiers_section = constants_content[tiers_start:]
 	# Find the closing ];
 	tiers_end = tiers_section.find("];") + 2
 	tiers_section = tiers_section[:tiers_end]
 	tier_pattern = re.compile(
-		r'name:\s*"([^"]+)".*?conferences:\s*\[([^\]]+)\]',
+		r'name:\s*"([^"]+)".*?type:\s*"([^"]+)".*?values:\s*\[([^\]]*)\]',
 		re.DOTALL
 	)
 	tiers = []
 	for match in tier_pattern.finditer(tiers_section):
 		tier_name = match.group(1)
-		conf_str = match.group(2)
-		conferences = re.findall(r'"([^"]+)"', conf_str)
-		tiers.append({"name": tier_name, "conferences": conferences})
+		tier_type = match.group(2)
+		values_str = match.group(3)
+		values = re.findall(r'"([^"]+)"', values_str)
+		tiers.append({"name": tier_name, "type": tier_type, "values": values})
 
 	# Generate debug maps for each tier and for all schools
 	for tier in tiers:
-		# Filter schools for this tier
-		tier_schools = [
-			s for s in all_schools
-			if s["conference"] in tier["conferences"]
-		]
+		# Filter schools based on tier type
+		if tier["type"] == "all":
+			tier_schools = list(all_schools)
+		elif tier["type"] == "conference":
+			tier_schools = [
+				s for s in all_schools
+				if s["conference"] in tier["values"]
+			]
+		elif tier["type"] == "subdivision":
+			tier_schools = [
+				s for s in all_schools
+				if s.get("subdivision", "") in tier["values"]
+			]
+		else:
+			tier_schools = []
 
 		# Project coordinates
 		raw_coords = [
