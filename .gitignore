@@ -1,2 +1,20 @@
 report_*.txt
 .DS_Store
+
+# === UNIVERSAL ===
+_temp*.?*
+# === TYPESCRIPT ===
+node_modules/
+dist/
+_site/
+*.tsbuildinfo
+.eslintcache
+.prettiercache
+test-results/
+playwright-report/
+blob-report/
+coverage/
+meta.json
+stats.html
+
+
