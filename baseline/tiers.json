@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Major Conferences",
+    "type": "conference",
+    "values": [
+      "SEC",
+      "Big Ten",
+      "Big 12",
+      "ACC"
+    ]
+  },
+  {
+    "name": "FBS",
+    "type": "subdivision",
+    "values": [
+      "FBS"
+    ]
+  },
+  {
+    "name": "FCS",
+    "type": "subdivision",
+    "values": [
+      "FCS"
+    ]
+  },
+  {
+    "name": "Non-Football",
+    "type": "subdivision",
+    "values": [
+      "Non-football"
+    ]
+  },
+  {
+    "name": "All Division I",
+    "type": "all",
+    "values": []
+  }
+]

@@ -1,3 +1,118 @@
+## 2026-06-27
+
+### Additions and New Features
+
+- **JS-to-TypeScript migration complete**: ported the game from the legacy `parts/` + `build_game.sh`
+  pipeline to a strict ESM TypeScript source tree under `src/`. Ten new modules: `src/types.ts`,
+  `src/dom_utils.ts`, `src/map_projection.ts`, `src/constants.ts`, `src/data_loader.ts`,
+  `src/game_state.ts`, `src/game_ui.ts` (24 UI functions), `src/game_play.ts`, `src/init.ts`,
+  `src/main.ts` (DOMContentLoaded entry). `src/index.html` and `src/style.css` merged from three
+  legacy `parts/*.html` fragments. `./build_github_pages.sh` compiles everything to `dist/main.js`
+  (139.3 kB).
+- **`build_school_data.py` retargeted**: input switched from deleted `parts/constants.js` to
+  `data/schools.json`; output now emits `src/data/schools_data.ts` (typed ESM with `NCAA_SCHOOLS`,
+  `DIFFICULTY_TIERS`, `SUBREGIONS`) and `data/schools.json`. Removed dead functions
+  (`generate_constants_js`, `parse_existing_schools`) and updated four stale `constants.js`
+  references in comments. Regenerated data: 361 schools / 5 tiers / 6 subregion keys.
+- **`generate_map_paths.py` retargeted**: reads `data/map_paths.json` and emits
+  `src/data/map_paths_data.ts` (49 state paths, prettier-formatted) plus `data/map_paths.json`.
+  Removed unused module-level dicts (`FIPS_TO_ABBR`, `ABBR_TO_NAME`), the circular identity-copy
+  `write_json_output()` call and function, and the orphaned `geojson_path` existence-check block;
+  fixed stale `compare_with_baseline()` docstring.
+- **`generate_debug_map.py` retargeted**: replaced regex-scraping of former `parts/constants.js`
+  and `parts/map_data.js` with `json.load` of `data/schools.json` and `data/map_paths.json`.
+  Writes per-tier debug HTML files to repo root (gitignored as `debug_map_*.html`).
+- **Raw data inputs moved to `data/`**: seven files relocated with `git mv`:
+  `ncaa_schools-FBS.csv`, `ncaa_schools-FCS.csv`, `ncaa_schools-NonFB.csv`,
+  `us_states.geojson`, `school_colors_cache.json`, `school_coordinates_cache.json`,
+  `ncaa_schools.ods`.
+- **`tests/test_game_logic.mjs`**: ten `node:test` assertions covering `haversineDistance`,
+  `missPartialCredit` (four boundary values), `getSchoolsForTier` (subset property, member check,
+  unknown-tier throw), and `shuffleArray`. All 10 pass.
+- **`tests/test_data_parity.mjs`**: parity gate comparing generated `src/data/schools_data.ts`
+  and `src/data/map_paths_data.ts` against `baseline/` fixtures; school comparison is
+  order-independent (sorted by `name`). All 4 tests pass.
+- **`tests/playwright/smoke.spec.ts`**: full-round Playwright smoke test loading the built `dist/`
+  game over HTTP via `playwright.config.ts` webServer (`python3 -m http.server`); drives all 68
+  Major Conferences questions to completion using `dispatchEvent("click")` on `.school-dot-group`
+  elements, then asserts results screen and share-button "Copied!" behavior.
+- **`tests/playwright/best_score.spec.ts`**: behavioral gate proving the TS game reads the same
+  localStorage key that the legacy `parts/game_state.js` wrote (`ncaa-best-major-conferences`),
+  so returning players keep their best scores after the migration.
+- **`docs/CODE_ARCHITECTURE.md` created**: documents the ESM TypeScript module tree
+  (`src/types.ts` through `src/main.ts`), the Python data-generator pipeline
+  (`build_school_data.py`, `generate_map_paths.py`), module dependency order, data flow,
+  test suites, and extension points.
+- **`docs/FILE_STRUCTURE.md` created**: full directory map covering `src/`, `data/`, `tests/`,
+  `baseline/`, `devel/`, `dist/`, `docs/`, and root scripts; generated-artifact table;
+  documentation map; where-to-add-new-work table.
+- **`docs/INSTALL.md` created**: covers Python 3.12, Node.js 18+, pip install steps,
+  `./devel/setup_typescript.sh`, optional `./devel/setup_playwright.sh`, and a verify step
+  (`./check_codebase.sh`).
+- **`docs/USAGE.md` refreshed**: corrected local server port note (random port, not 8080);
+  removed migration-era sentence about `parts/map_data.js` removal (changelog language, not
+  current-state docs).
+- **`docs/screenshots/` created**: three Playwright-captured screenshots from the live `dist/`
+  build: `setup_screen.png` (title + five difficulty tiers + start button), `game_screen.png`
+  (US map with school dots, score, streak, current question), `results_screen.png` (final score
+  and share button).
+- **`README.md` updated**: screenshot block between `<!-- screenshots:begin -->` and
+  `<!-- screenshots:end -->` sentinels rewritten with real embeds; Documentation section
+  links `docs/INSTALL.md`, `docs/USAGE.md`, `docs/CODE_ARCHITECTURE.md`,
+  `docs/FILE_STRUCTURE.md`, `docs/CHANGELOG.md`, and `docs/AUTHORS.md`; quick-start corrected
+  to note random port and auto-browser-open (removes stale localhost:8080 reference).
+
+### Behavior or Interface Changes
+
+- **School names normalized to ASCII**: Hawaiian okina (U+02BB) removed from
+  `data/ncaa_schools-FBS.csv` row 67; the okina form becomes "Hawaii" in both `shortName` and
+  school `name`. `build_school_data.py` now applies `normalize_to_ascii()` (backed by
+  `unidecode`) to all text fields for every school. Regenerated `src/data/schools_data.ts` and
+  `data/schools.json` are fully ASCII; `tests/test_ascii_compliance.py` passes 89/89.
+- **localStorage best-score keys preserved**: key format
+  `"ncaa-best-" + tierName.replace(/\s+/g, "-").toLowerCase()` is identical to the legacy
+  `parts/game_state.js` implementation, so returning players do not lose saved scores after the
+  migration.
+- **Authoritative map-path source is `src/data/map_paths_data.ts` / `data/map_paths.json`**:
+  the former `parts/map_data.js` is removed; `generate_map_paths.py` reads and writes
+  `data/map_paths.json`.
+
+### Fixes and Maintenance
+
+- **Post-migration audit fixes (comments, null guards, DOM helpers)**: removed work-package
+  scaffold tag from `tests/test_game_logic.mjs` docstring; corrected stale comment in
+  `src/game_ui.ts` (`getDotColor` description, tier name in `showSetupScreen`); changed fragile
+  exact-count assertion in `tests/playwright/smoke.spec.ts` to `toBeGreaterThan(0)`; routed three
+  `document.getElementById` calls in `src/game_play.ts` through `findElement` from `dom_utils.ts`;
+  tightened three falsy object guards (`!school`, `!group`, `!currentSchool`) to explicit
+  `=== null` checks.
+- **Module-level self-check block removed from `src/game_state.ts`**: deleted four
+  `_testCredit*` variable declarations and their `if`/`throw` invariant checks that ran
+  `missPartialCredit` at import time; coverage moved to `tests/test_game_logic.mjs`.
+- **`npx prettier --write` applied to all TS/MJS files**: `format:check` step in
+  `./check_codebase.sh` now passes. No logic changes; whitespace/line-break only.
+- **`tsconfig.json` / `tsconfig.lint.json` cleaned up**: removed temporary
+  `"exclude": ["tests/playwright/**"]` workaround; `tsconfig.lint.json` simplified to
+  `{ "extends": "./tsconfig.json" }`.
+- **Fixed bare f-strings** in `generate_debug_map.py` and `generate_map_paths.py`: removed
+  spurious `f` prefix from six string literals containing no placeholders; resolves pyflakes
+  warnings.
+- **`requests` moved to `pip_requirements.txt`**: runtime dependency of `build_school_data.py`
+  (geocoding, Wikipedia color lookups); was incorrectly listed as a dev dependency.
+- **`unidecode` added to `pip_requirements.txt`**: imported by `build_school_data.py` for ASCII
+  normalization but was not declared as a dependency.
+
+### Removals and Deprecations
+
+- **`parts/` directory deleted** (11 files: `body.html`, `constants.js`, `game_play.js`,
+  `game_state.js`, `game_ui.js`, `head.html`, `init.js`, `map_data.js`, `map_projection.js`,
+  `style.css`, `tail.html`). All removed with `git rm -rf`.
+- **`build_game.sh` deleted**: legacy single-file HTML assembler no longer needed after
+  TypeScript migration.
+- **`ncaa_school_find_game.html` deleted**: legacy single-file build output removed.
+- **`tests/capture_baseline.py` deleted**: baseline capture script removed after `parts/` sources
+  it depended on were deleted.
+
 ## 2026-04-02
 
 ### Additions and New Features

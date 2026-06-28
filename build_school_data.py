@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Build school data from CSV files and existing constants.js.
+"""Build school data from CSV files.
 
-Reads CSV files, merges with existing school data, geocodes new schools,
-looks up school colors from Wikipedia, and outputs updated parts/constants.js.
+Reads CSV files under data/, geocodes new schools (using data/school_coordinates_cache.json),
+looks up school colors from Wikipedia (using data/school_colors_cache.json), and outputs:
+  - src/data/schools_data.ts: typed ESM module (NCAA_SCHOOLS, DIFFICULTY_TIERS, SUBREGIONS)
+  - data/schools.json: same payload as a JSON file for Python tools
 
 Usage:
     source source_me.sh && python3 build_school_data.py
@@ -19,6 +21,7 @@ import subprocess
 
 # PIP3 modules
 import requests
+import unidecode
 
 # Conference full name -> abbreviation mapping
 CONFERENCE_MAP = {
@@ -56,7 +59,7 @@ CONFERENCE_MAP = {
 	"Western Athletic Conference": "WAC",
 }
 
-# State -> hintRegion mapping (inverted from SUBREGIONS in constants.js)
+# State -> hintRegion mapping (inverted from SUBREGIONS defined below)
 STATE_TO_REGION = {}
 SUBREGIONS = {
 	"Northeast": ["ME","NH","VT","MA","RI","CT","NY","NJ","PA","MD","DE","DC"],
@@ -69,6 +72,15 @@ SUBREGIONS = {
 for region, states in SUBREGIONS.items():
 	for state in states:
 		STATE_TO_REGION[state] = region
+
+# Difficulty tier definitions, matching the DIFFICULTY_TIERS export in schools_data.ts
+DIFFICULTY_TIERS_DATA = [
+	{"name": "Major Conferences", "type": "conference", "values": ["SEC", "Big Ten", "Big 12", "ACC"]},
+	{"name": "FBS", "type": "subdivision", "values": ["FBS"]},
+	{"name": "FCS", "type": "subdivision", "values": ["FCS"]},
+	{"name": "Non-Football", "type": "subdivision", "values": ["Non-football"]},
+	{"name": "All Division I", "type": "all", "values": []},
+]
 
 # Manual coordinate overrides for tricky geocoding cases
 COORD_OVERRIDES = {
@@ -113,7 +125,7 @@ COORD_OVERRIDES = {
 }
 
 # Known school colors (primary, secondary) - manually curated
-# Used when the school is not already in constants.js
+# Used when the school is not already in data/schools.json
 KNOWN_SCHOOL_COLORS = {
 	# FBS schools not in original 193
 	"California": ("#003262", "#FDB515"),
@@ -409,6 +421,30 @@ CONFERENCE_FALLBACK_COLORS = {
 
 
 #============================================
+def normalize_to_ascii(text: str) -> str:
+	"""Normalize a text field to plain ASCII.
+
+	Removes Hawaiian okina chars (U+02BB, U+02BC), runs unidecode as a safety
+	net for any remaining non-ASCII, then keeps only strict ASCII codepoints.
+	For school name with okina (U+02BB), the result strips the okina: "Hawaii".
+
+	Args:
+		text: raw input string, possibly containing non-ASCII characters.
+
+	Returns:
+		ASCII-only string with okina and other non-ASCII removed/transliterated.
+	"""
+	# Strip Hawaiian okina glottal stop chars directly to empty string
+	# U+02BB MODIFIER LETTER TURNED COMMA, U+02BC MODIFIER LETTER APOSTROPHE
+	text = text.replace('\u02BB', '').replace('\u02BC', '')
+	# Run unidecode as a safety net for any remaining non-ASCII (e.g. accents)
+	text = unidecode.unidecode(text)
+	# Keep only strict ASCII characters as a final guard
+	ascii_only = ''.join(c for c in text if ord(c) < 128)
+	return ascii_only
+
+
+#============================================
 def get_repo_root() -> str:
 	"""Get the repository root directory."""
 	result = subprocess.run(
@@ -426,49 +462,6 @@ def strip_footnotes(text: str) -> str:
 	return cleaned
 
 
-#============================================
-def parse_existing_schools(js_content: str) -> dict:
-	"""Extract school objects from existing constants.js content.
-
-	Returns a dict keyed by shortName for easy lookup.
-	"""
-	schools = {}
-	# Find all { ... } blocks that contain shortName
-	block_pattern = re.compile(r'\{[^{}]+\}', re.DOTALL)
-	for block_match in block_pattern.finditer(js_content):
-		block = block_match.group(0)
-		if 'shortName:' not in block:
-			continue
-
-		def get_field(name: str, text: str) -> str:
-			m = re.search(rf'{name}:\s*"([^"]+)"', text)
-			return m.group(1) if m else ""
-
-		def get_num(name: str, text: str) -> float:
-			m = re.search(rf'{name}:\s*([\d.-]+)', text)
-			return float(m.group(1)) if m else 0.0
-
-		short_name = get_field("shortName", block)
-		if not short_name:
-			continue
-
-		has_swap = "colorSwap: true" in block or "colorSwap:true" in block
-		schools[short_name] = {
-			"name": get_field("name", block),
-			"shortName": short_name,
-			"mascot": get_field("mascot", block),
-			"conference": get_field("conference", block),
-			"city": get_field("city", block),
-			"state": get_field("state", block),
-			"lat": get_num("lat", block),
-			"lon": get_num("lon", block),
-			"colorPrimary": get_field("colorPrimary", block),
-			"colorSecondary": get_field("colorSecondary", block),
-			"colorSwap": has_swap,
-			"hintRegion": get_field("hintRegion", block),
-		}
-	return schools
-
 
 #============================================
 def parse_csv_files(repo_root: str) -> list:
@@ -480,7 +473,8 @@ def parse_csv_files(repo_root: str) -> list:
 	]
 	all_schools = []
 	for filename, subdivision in csv_files:
-		filepath = os.path.join(repo_root, filename)
+		# CSV files now live under data/ subdirectory
+		filepath = os.path.join(repo_root, "data", filename)
 		with open(filepath, "r", encoding="utf-8") as f:
 			reader = csv.DictReader(f)
 			for row in reader:
@@ -759,7 +753,7 @@ def merge_school_data(csv_schools: list, existing_schools: dict,
 
 	for csv_school in csv_schools:
 		common_name = csv_school["commonName"]
-		# Check if this school exists in current constants.js
+		# Check if this school exists in data/schools.json
 		existing = existing_schools.get(common_name)
 
 		if existing:
@@ -818,6 +812,12 @@ def merge_school_data(csv_schools: list, existing_schools: dict,
 			}
 			new_count += 1
 
+		# Normalize text fields to plain ASCII before storing
+		# Applies to all schools (both existing and new) as a safety net
+		for field in ("name", "shortName", "mascot", "city", "conference", "hintRegion"):
+			if field in school:
+				school[field] = normalize_to_ascii(school[field])
+
 		merged.append(school)
 
 	print(f"Matched {matched_count} existing schools, added {new_count} new schools")
@@ -849,54 +849,28 @@ def format_school_js(school: dict) -> str:
 
 
 #============================================
-def generate_constants_js(schools: list) -> str:
-	"""Generate the full parts/constants.js file content."""
-	output = ""
-	output += "// NCAA Division I Schools - generated by build_school_data.py\n\n"
-	output += "var NCAA_SCHOOLS = [\n"
+def generate_schools_ts(schools: list) -> str:
+	"""Generate src/data/schools_data.ts content as a typed ESM module.
 
-	# Group schools by subdivision, then by conference
-	subdivisions = ["FBS", "FCS", "Non-football"]
-	for subdiv in subdivisions:
-		subdiv_schools = [s for s in schools if s["subdivision"] == subdiv]
-		# Group by conference
-		conferences = {}
-		for school in subdiv_schools:
-			conf = school["conference"]
-			if conf not in conferences:
-				conferences[conf] = []
-			conferences[conf].append(school)
+	Emits three named exports using json.dumps payloads (valid JSON is valid
+	TypeScript literal) so prettier can format them as normal source.
 
-		# Sort conferences alphabetically
-		sorted_confs = sorted(conferences.keys())
-		for conf in sorted_confs:
-			conf_schools = sorted(conferences[conf], key=lambda s: s["shortName"])
-			output += f"\t// {subdiv} - {conf} ({len(conf_schools)} schools)\n"
-			for school in conf_schools:
-				output += format_school_js(school) + "\n"
-			output += "\n"
+	Args:
+		schools: merged school list from merge_school_data().
 
-	output += "];\n\n"
+	Returns:
+		Full file content string for src/data/schools_data.ts.
+	"""
+	# Build JSON payloads; prettier will reformat indentation after writing
+	schools_json = json.dumps(schools, indent=2)
+	tiers_json = json.dumps(DIFFICULTY_TIERS_DATA, indent=2)
+	subregions_json = json.dumps(SUBREGIONS, indent=2)
 
-	# Difficulty tiers
-	output += "// Difficulty tier definitions for the setup screen\n"
-	output += "var DIFFICULTY_TIERS = [\n"
-	output += '\t{ name: "Major Conferences", type: "conference", '
-	output += 'values: ["SEC", "Big Ten", "Big 12", "ACC"] },\n'
-	output += '\t{ name: "FBS", type: "subdivision", values: ["FBS"] },\n'
-	output += '\t{ name: "FCS", type: "subdivision", values: ["FCS"] },\n'
-	output += '\t{ name: "Non-Football", type: "subdivision", '
-	output += 'values: ["Non-football"] },\n'
-	output += '\t{ name: "All Division I", type: "all", values: [] },\n'
-	output += "];\n\n"
-
-	# SUBREGIONS (preserved as-is)
-	output += "var SUBREGIONS = {\n"
-	for region, states in SUBREGIONS.items():
-		state_str = ",".join(f'"{s}"' for s in states)
-		output += f'\t"{region}": [{state_str}],\n'
-	output += "};\n"
-
+	# Assemble TypeScript module with import type and three named exports
+	output = 'import type { NCAASchool, DifficultyTier } from "../types";\n\n'
+	output += f"export const NCAA_SCHOOLS: NCAASchool[] = {schools_json};\n\n"
+	output += f"export const DIFFICULTY_TIERS: DifficultyTier[] = {tiers_json};\n\n"
+	output += f"export const SUBREGIONS: Record<string, string[]> = {subregions_json};\n"
 	return output
 
 
@@ -906,16 +880,21 @@ def main():
 	repo_root = get_repo_root()
 	print(f"Repo root: {repo_root}")
 
-	# Paths
-	constants_path = os.path.join(repo_root, "parts", "constants.js")
-	coord_cache_path = os.path.join(repo_root, "school_coordinates_cache.json")
-	color_cache_path = os.path.join(repo_root, "school_colors_cache.json")
+	# Paths - caches and CSVs now live under data/
+	coord_cache_path = os.path.join(repo_root, "data", "school_coordinates_cache.json")
+	color_cache_path = os.path.join(repo_root, "data", "school_colors_cache.json")
+	ts_output_path = os.path.join(repo_root, "src", "data", "schools_data.ts")
+	json_output_path = os.path.join(repo_root, "data", "schools.json")
 
-	# Step 1: Parse existing schools from constants.js
-	print("\n=== Parsing existing constants.js ===")
-	with open(constants_path, "r") as f:
-		js_content = f.read()
-	existing_schools = parse_existing_schools(js_content)
+	# Step 1: Load existing schools from data/schools.json
+	print("\n=== Loading existing schools from data/schools.json ===")
+	existing_schools_list = []
+	if os.path.exists(json_output_path):
+		with open(json_output_path, "r") as f:
+			schools_data = json.load(f)
+		existing_schools_list = schools_data["NCAA_SCHOOLS"]
+	# Build a dict keyed by shortName for merge lookup
+	existing_schools = {s["shortName"]: s for s in existing_schools_list}
 	print(f"Found {len(existing_schools)} existing schools")
 
 	# Step 2: Parse CSV files
@@ -940,24 +919,67 @@ def main():
 	print(f"Saved {len(coord_cache)} cached coordinates")
 	print(f"Saved {len(color_cache)} cached colors")
 
-	# Step 5: Generate output
-	print("\n=== Generating constants.js ===")
-	js_output = generate_constants_js(merged_schools)
+	# Step 5: Generate TypeScript and JSON outputs
+	print("\n=== Generating src/data/schools_data.ts ===")
+	ts_output = generate_schools_ts(merged_schools)
 
-	# Write output
-	with open(constants_path, "w") as f:
-		f.write(js_output)
-	print(f"Wrote {constants_path}")
+	# Create src/data/ directory if it does not exist
+	os.makedirs(os.path.dirname(ts_output_path), exist_ok=True)
 
-	# Summary
+	# Write TypeScript module for the ESM build
+	with open(ts_output_path, "w") as f:
+		f.write(ts_output)
+	print(f"Wrote {ts_output_path}")
+
+	# Write data/schools.json for Python tools (generate_debug_map.py etc.)
+	schools_json_data = {
+		"NCAA_SCHOOLS": merged_schools,
+		"DIFFICULTY_TIERS": DIFFICULTY_TIERS_DATA,
+		"SUBREGIONS": SUBREGIONS,
+	}
+	with open(json_output_path, "w") as f:
+		json.dump(schools_json_data, f, indent=2)
+	print(f"Wrote {json_output_path}")
+
+	# Run prettier to normalize the TypeScript file as regular source
+	print("\n=== Running prettier on schools_data.ts ===")
+	subprocess.run(
+		["npx", "prettier", "--write", ts_output_path],
+		cwd=repo_root,
+		check=True,
+	)
+	print("Prettier formatting complete")
+
+	# Summary and parity check
 	print("\n=== Summary ===")
 	fbs_count = len([s for s in merged_schools if s["subdivision"] == "FBS"])
 	fcs_count = len([s for s in merged_schools if s["subdivision"] == "FCS"])
 	nfb_count = len([s for s in merged_schools if s["subdivision"] == "Non-football"])
+	total_count = len(merged_schools)
 	print(f"FBS: {fbs_count} schools")
 	print(f"FCS: {fcs_count} schools")
 	print(f"Non-football: {nfb_count} schools")
-	print(f"Total: {len(merged_schools)} schools")
+	print(f"Total: {total_count} schools")
+	print(f"DIFFICULTY_TIERS count: {len(DIFFICULTY_TIERS_DATA)}")
+	print(f"SUBREGIONS key count: {len(SUBREGIONS)}")
+
+	# Parity check: confirm expected counts match baseline
+	expected_total = 361
+	expected_tiers = 5
+	expected_subregions = 6
+	if total_count != expected_total:
+		raise ValueError(
+			f"School count mismatch: got {total_count}, expected {expected_total}"
+		)
+	if len(DIFFICULTY_TIERS_DATA) != expected_tiers:
+		raise ValueError(
+			f"Tier count mismatch: got {len(DIFFICULTY_TIERS_DATA)}, expected {expected_tiers}"
+		)
+	if len(SUBREGIONS) != expected_subregions:
+		raise ValueError(
+			f"Subregion count mismatch: got {len(SUBREGIONS)}, expected {expected_subregions}"
+		)
+	print(f"Parity check PASSED: {total_count} schools / {len(DIFFICULTY_TIERS_DATA)} tiers / {len(SUBREGIONS)} subregion keys")
 
 	# Check for zero coordinates
 	zero_coords = [s for s in merged_schools if s["lat"] == 0.0 and s["lon"] == 0.0]

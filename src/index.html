@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Find NCAA schools on a US map. Test your knowledge of college locations across Power and Mid-Major conferences.">
+	<meta name="theme-color" content="#3c4257">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%230066cc'/><circle cx='50' cy='50' r='8' fill='white'/></svg>">
+	<title>NCAA School Find Game</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="setup-screen" class="screen-container">
+	<div class="setup-card">
+		<h1>NCAA School Find Game</h1>
+		<p class="subtitle">How well do you know NCAA school locations?</p>
+
+		<div class="conference-selector" id="tier-selector">
+			<label><input type="radio" name="tier" class="tier-radio" value="Major Conferences" checked> Major Conferences <span class="tier-count"></span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="FBS"> FBS Schools <span class="tier-count"></span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="FCS"> FCS Schools <span class="tier-count"></span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="Non-Football"> Non-Football Schools <span class="tier-count"></span></label>
+			<label><input type="radio" name="tier" class="tier-radio" value="All Division I"> All Division I <span class="tier-count"></span></label>
+		</div>
+		<p id="setup-error" class="setup-error" style="display:none;">Select a conference tier to play</p>
+
+		<button id="start-button" class="button button-primary">Start Game</button>
+		<button id="theme-toggle-setup" class="theme-toggle" title="Toggle dark/light mode">&#9790;</button>
+	</div>
+</div>
+
+<div id="game-screen" class="screen-container" style="display:none;">
+	<div class="game-topbar">
+		<span class="topbar-progress"><span id="progress-display">0 of 16</span></span>
+		<span class="topbar-score">Score: <span id="score-display">0%</span></span>
+		<span class="topbar-prompt">Click on <span id="question-text" class="topbar-school-name">Stanford</span></span>
+		<span class="topbar-streak" id="streak-display"></span>
+		<span class="topbar-timer" id="timer-display">00:00</span>
+		<button id="theme-toggle-game" class="theme-toggle" title="Toggle dark/light mode">&#9790;</button>
+	</div>
+
+	<div class="game-body">
+		<div id="school-sidebar" class="sidebar">
+			<ul id="remaining-list"></ul>
+		</div>
+		<div class="game-map-wrap">
+			<svg id="game-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="United States map with NCAA school locations">
+				<defs>
+					<filter id="dot-glow">
+						<feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+						<feMerge>
+							<feMergeNode in="coloredBlur"/>
+							<feMergeNode in="SourceGraphic"/>
+						</feMerge>
+					</filter>
+				</defs>
+				<g id="states"></g>
+				<g id="school-dots"></g>
+				<circle id="zoom-circle" r="0" fill="none" stroke="#28a745" stroke-width="3" opacity="0" />
+				<line id="feedback-line" style="display:none;" stroke="#dc3545" stroke-width="2" stroke-dasharray="6,4" />
+				<g id="map-labels"></g>
+				<g id="hover-tooltip" style="display:none; pointer-events:none;">
+					<rect id="hover-tooltip-bg" rx="3" ry="3" fill="white" fill-opacity="0.92" stroke="#888" stroke-width="0.5"></rect>
+					<text id="hover-tooltip-text" font-size="12" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="600" fill="#333"></text>
+				</g>
+			</svg>
+
+			<div id="feedback-panel" class="map-feedback-panel" aria-live="polite"></div>
+			<label id="state-labels-toggle" class="state-labels-toggle"><input type="checkbox" id="show-state-labels"> Show states</label>
+		</div>
+	</div>
+
+	<button id="next-button" style="display:none;">Next</button>
+
+	<!-- Mobile school list drawer (visible only on narrow screens) -->
+	<div id="mobile-drawer" class="mobile-drawer">
+		<div id="mobile-drawer-handle" class="mobile-drawer-handle">
+			<span class="drawer-handle-bar"></span>
+			<span class="drawer-handle-text">School List</span>
+		</div>
+		<div class="mobile-drawer-content">
+			<ul id="mobile-remaining-list"></ul>
+		</div>
+	</div>
+</div>
+
+<div id="results-screen" class="screen-container" style="display:none;">
+	<div class="results-card">
+		<h1>Round Complete!</h1>
+
+		<div class="results-summary">
+			<div class="result-stat">
+				<span class="label">Total Score</span>
+				<span id="results-total-score" class="value">0</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Time Elapsed</span>
+				<span id="results-time" class="value">0:00</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Schools Found</span>
+				<span id="results-count" class="value">0/16</span>
+			</div>
+			<div class="result-stat">
+				<span class="label">Best Streak</span>
+				<span id="results-streak" class="value">0</span>
+			</div>
+		</div>
+
+		<p id="results-best-score" style="text-align:center; font-weight:600; font-size:16px; margin-bottom:20px;"></p>
+
+		<div class="results-breakdown">
+			<h3>Question Breakdown</h3>
+			<table id="results-table" class="results-table">
+				<thead>
+					<tr>
+						<th>School</th>
+						<th>Attempts</th>
+						<th>Time</th>
+						<th>Score</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<button id="share-results-button" class="button button-secondary" style="margin-top:10px; width:100%; background:#6c757d; color:white;">Copy Results</button>
+		<button id="play-again-button" class="button button-primary">Play Again</button>
+	</div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

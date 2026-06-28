@@ -1,5 +1,6 @@
 report_*.txt
 .DS_Store
+debug_map_*.html
 
 # === UNIVERSAL ===
 _temp*.?*

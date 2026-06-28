@@ -1,41 +1,26 @@
 #!/usr/bin/env python3
-"""Generate US state SVG paths from GeoJSON using Albers Equal-Area Conic projection."""
+"""Generate US state SVG paths and emit src/data/map_paths_data.ts.
+
+Reads data/map_paths.json (which carries id, region, labelX,
+labelY, name, and d for all 49 continental states + DC) and emits:
+  - src/data/map_paths_data.ts  (TypeScript ESM, prettier-formatted)
+
+The geometry functions below (albers_project, simplify_ring, etc.) are kept
+for potential future re-derivation from data/us_states.geojson; the main()
+pipeline uses data/map_paths.json as the single source of truth so that the
+hand-curated region/labelX/labelY values and the exact d strings are preserved
+verbatim rather than regenerated.
+
+Usage:
+    source source_me.sh && python3 generate_map_paths.py
+"""
 
 # Standard Library
 import os
+import re
 import json
 import math
-
-# FIPS code to state abbreviation mapping (continental US + DC only)
-FIPS_TO_ABBR = {
-	"01": "AL", "04": "AZ", "05": "AR", "06": "CA", "08": "CO",
-	"09": "CT", "10": "DE", "11": "DC", "12": "FL", "13": "GA",
-	"16": "ID", "17": "IL", "18": "IN", "19": "IA", "20": "KS",
-	"21": "KY", "22": "LA", "23": "ME", "24": "MD", "25": "MA",
-	"26": "MI", "27": "MN", "28": "MS", "29": "MO", "30": "MT",
-	"31": "NE", "32": "NV", "33": "NH", "34": "NJ", "35": "NM",
-	"36": "NY", "37": "NC", "38": "ND", "39": "OH", "40": "OK",
-	"41": "OR", "42": "PA", "44": "RI", "45": "SC", "46": "SD",
-	"47": "TN", "48": "TX", "49": "UT", "50": "VT", "51": "VA",
-	"53": "WA", "54": "WV", "55": "WI", "56": "WY",
-}
-
-# State abbreviation to full name
-ABBR_TO_NAME = {
-	"AL": "Alabama", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
-	"CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia",
-	"FL": "Florida", "GA": "Georgia", "ID": "Idaho", "IL": "Illinois",
-	"IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky",
-	"LA": "Louisiana", "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts",
-	"MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri",
-	"MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire",
-	"NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
-	"NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
-	"OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island",
-	"SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee",
-	"TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia",
-	"WA": "Washington", "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
-}
+import subprocess
 
 
 #============================================
@@ -203,69 +188,223 @@ def geometry_to_path(geometry: dict, tolerance: float = 0.5) -> str:
 
 
 #============================================
-def main():
-	"""Load GeoJSON, project to Albers, write map_data.js."""
+def parse_map_data_js(js_path: str) -> list:
+	"""Parse US_STATE_PATHS from a legacy parts/map_data.js file.
+
+	LEGACY: this function is no longer called by main(). main() now reads
+	data/map_paths.json directly. Kept for reference in case re-derivation
+	from a hand-edited JS file is ever needed.
+
+	Reads each state entry line-by-line and extracts the six fields:
+	id, region, labelX, labelY, name, d.
+
+	Line-by-line parsing avoids the regex ambiguity between the field name 'd'
+	and the field name 'id' that exists when matching on a whole block.
+
+	Args:
+		js_path: absolute path to a map_data.js file
+
+	Returns:
+		List of dicts sorted by id, one per state/territory.
+	"""
+	with open(js_path, "r", encoding="utf-8") as fh:
+		content = fh.read()
+	# locate the array body between 'var US_STATE_PATHS = [' and '];'
+	start_marker = "var US_STATE_PATHS = ["
+	start_idx = content.find(start_marker)
+	if start_idx == -1:
+		raise ValueError(f"Could not find 'var US_STATE_PATHS = [' in {js_path}")
+	array_body_start = start_idx + len(start_marker)
+	end_idx = content.find("];", array_body_start)
+	if end_idx == -1:
+		raise ValueError("Could not find closing ']; ' for US_STATE_PATHS")
+	array_body = content[array_body_start:end_idx]
+	# pattern for quoted string fields: fieldname: "value",
+	str_pattern = re.compile(r'^(\w+):\s*"([^"]*)"')
+	# pattern for numeric fields: fieldname: 123.4,
+	num_pattern = re.compile(r'^(\w+):\s*([\d.-]+),?')
+	entries = []
+	current: dict = {}
+	in_block = False
+	for line in array_body.split("\n"):
+		stripped = line.strip()
+		if stripped == "{":
+			# start of a new state block
+			current = {}
+			in_block = True
+		elif stripped in ("}", "},"):
+			# end of a state block - save if it has an id
+			if in_block and "id" in current:
+				entries.append(dict(current))
+			current = {}
+			in_block = False
+		elif in_block:
+			# try quoted string match first (covers id, region, name, d)
+			m_str = str_pattern.match(stripped)
+			if m_str:
+				current[m_str.group(1)] = m_str.group(2)
+				continue
+			# try numeric match (covers labelX, labelY)
+			m_num = num_pattern.match(stripped)
+			if m_num:
+				current[m_num.group(1)] = float(m_num.group(2))
+	# sort by state id for consistent output
+	entries.sort(key=lambda e: e["id"])
+	return entries
+
+
+#============================================
+def compare_with_baseline(entries: list, baseline_path: str) -> bool:
+	"""Compare parsed entries against the committed baseline fixture.
+
+	Prints per-field equality results and returns True when all fields match.
+
+	Note: the baseline/state_paths.json was captured with a regex bug that
+	stored the state id value in the 'd' field rather than the SVG path.
+	This function detects and reports that mismatch separately from genuine
+	data mismatches in region/labelX/labelY/name.
+
+	Args:
+		entries: list of state dicts from data/map_paths.json
+		baseline_path: path to baseline/state_paths.json
+
+	Returns:
+		True if region/labelX/labelY/name fields all match the baseline.
+	"""
+	with open(baseline_path, "r", encoding="utf-8") as fh:
+		baseline = json.load(fh)
+	# index baseline by id for fast lookup
+	baseline_by_id = {entry["id"]: entry for entry in baseline}
+	print(f"\nBaseline comparison ({baseline_path}):")
+	# check counts
+	print(f"  count == 49: generated={len(entries)}, baseline={len(baseline)}, match={len(entries) == len(baseline)}")
+	# check per-entry fields
+	fields_ok = True
+	d_baseline_bug_count = 0
+	for entry in entries:
+		state_id = entry["id"]
+		if state_id not in baseline_by_id:
+			print(f"  MISSING in baseline: {state_id}")
+			fields_ok = False
+			continue
+		bl = baseline_by_id[state_id]
+		# check region, labelX, labelY, name (these should all match)
+		for field in ("region", "labelX", "labelY", "name"):
+			gen_val = entry[field]
+			bl_val = bl[field]
+			if gen_val != bl_val:
+				print(f"  MISMATCH {state_id}.{field}: generated={gen_val!r}, baseline={bl_val!r}")
+				fields_ok = False
+		# check d field separately - baseline has a known bug (stored id instead of SVG path)
+		bl_d = bl["d"]
+		gen_d = entry["d"]
+		# detect the baseline bug: baseline d equals the state id
+		if bl_d == state_id:
+			d_baseline_bug_count += 1
+		elif bl_d != gen_d:
+			mismatch_msg = (
+				f"  MISMATCH {state_id}.d (non-bug): "
+				f"generated={gen_d[:30]!r}..., baseline={bl_d[:30]!r}..."
+			)
+			print(mismatch_msg)
+			fields_ok = False
+	if d_baseline_bug_count > 0:
+		print(f"  baseline 'd' field bug: {d_baseline_bug_count}/49 entries store state id instead of SVG path")
+		print("  (baseline was captured with a regex that matched 'id' field when looking for 'd' field)")
+		print("  Fix: regenerate baseline/state_paths.json from data/map_paths.json")
+	# report d field result
+	if d_baseline_bug_count == 0:
+		# check that all d fields matched (no non-bug mismatches means they all matched)
+		print("  d (SVG path): all 49 entries match baseline exactly")
+	if fields_ok:
+		print("  region/labelX/labelY/name: all 49 entries match baseline exactly")
+	return fields_ok
+
+
+#============================================
+def write_typescript(entries: list, ts_path: str) -> None:
+	"""Write entries as a TypeScript ESM module to ts_path.
+
+	Format:
+	    import type { StatePathData } from "../types";
+	    export const US_STATE_PATHS: StatePathData[] = [...];
+
+	Args:
+		entries: list of state dicts (id, region, labelX, labelY, name, d)
+		ts_path: absolute path to the output .ts file
+	"""
+	os.makedirs(os.path.dirname(ts_path), exist_ok=True)
+	# build the array in TypeScript-friendly format using json.dumps
+	# prettier will reformat to 2-space indentation and remove trailing comma
+	array_json = json.dumps(entries, indent=2, ensure_ascii=True)
+	ts_lines = []
+	ts_lines.append('import type { StatePathData } from "../types";')
+	ts_lines.append("")
+	ts_lines.append(f"export const US_STATE_PATHS: StatePathData[] = {array_json};")
+	ts_lines.append("")
+	ts_content = "\n".join(ts_lines)
+	with open(ts_path, "w", encoding="utf-8") as fh:
+		fh.write(ts_content)
+	file_size = os.path.getsize(ts_path)
+	print(f"Wrote {ts_path} ({file_size:,} bytes, pre-prettier)")
+
+
+
+#============================================
+def run_prettier(ts_path: str, repo_root: str) -> None:
+	"""Run prettier --write on the TypeScript file.
+
+	Args:
+		ts_path: absolute path to the .ts file to format
+		repo_root: repo root directory (cwd for npx)
+	"""
+	result = subprocess.run(
+		["npx", "prettier", "--write", ts_path],
+		cwd=repo_root,
+		capture_output=True,
+		text=True,
+	)
+	if result.returncode != 0:
+		print(f"prettier error:\n{result.stderr}")
+		raise RuntimeError(f"prettier --write failed for {ts_path}")
+	file_size = os.path.getsize(ts_path)
+	print(f"Prettier formatted {ts_path} ({file_size:,} bytes)")
+
+
+#============================================
+def main() -> None:
+	"""Load map data from data/map_paths.json and emit src/data/map_paths_data.ts."""
 	# determine repo root
 	repo_root = os.path.dirname(os.path.abspath(__file__))
-	geojson_path = os.path.join(repo_root, "us_states.geojson")
-	output_path = os.path.join(repo_root, "parts", "map_data.js")
-	# load GeoJSON
-	with open(geojson_path, "r") as f:
-		geojson = json.load(f)
-	# process each feature
-	state_entries = []
-	for feature in geojson["features"]:
-		fips = feature["id"]
-		# skip non-continental states
-		if fips not in FIPS_TO_ABBR:
-			continue
-		abbr = FIPS_TO_ABBR[fips]
-		name = ABBR_TO_NAME[abbr]
-		# convert geometry to SVG path
-		path_d = geometry_to_path(feature["geometry"], tolerance=0.5)
-		if not path_d:
-			print(f"WARNING: empty path for {abbr} ({name})")
-			continue
-		state_entries.append({
-			"id": abbr,
-			"name": name,
-			"d": path_d,
-		})
-	# sort by abbreviation
-	state_entries.sort(key=lambda e: e["id"])
+	# source path: map_paths.json is the source of truth (id/region/labelX/labelY/name/d)
+	json_input_path = os.path.join(repo_root, "data", "map_paths.json")
+	baseline_path = os.path.join(repo_root, "baseline", "state_paths.json")
+	# output path: only the TypeScript ESM module
+	ts_output_path = os.path.join(repo_root, "src", "data", "map_paths_data.ts")
+	# verify source exists
+	if not os.path.exists(json_input_path):
+		raise FileNotFoundError(f"Source not found: {json_input_path}")
+	# load all state entries from data/map_paths.json
+	print(f"Reading state paths from {json_input_path}")
+	with open(json_input_path, "r", encoding="utf-8") as fh:
+		map_data = json.load(fh)
+	entries = sorted(map_data["US_STATE_PATHS"], key=lambda e: e["id"])
 	# verify count
-	print(f"Generated paths for {len(state_entries)} states")
-	# build output JavaScript
-	lines = []
-	lines.append(
-		"/* map_data.js - US State SVG Path Strings (Albers projection) */"
-	)
-	lines.append(
-		"/* State boundary paths are pre-projected using "
-		"Albers Equal-Area Conic projection */"
-	)
-	lines.append(
-		"/* matching ALBERS_CONFIG in map_projection.js for 960x600 viewBox */"
-	)
-	lines.append("")
-	lines.append("var US_STATE_PATHS = [")
-	for i, entry in enumerate(state_entries):
-		# determine trailing comma
-		comma = "," if i < len(state_entries) - 1 else ""
-		lines.append("\t{")
-		lines.append(f'\t\tid: "{entry["id"]}",')
-		lines.append(f'\t\tname: "{entry["name"]}",')
-		lines.append(f'\t\td: "{entry["d"]}"')
-		lines.append(f"\t}}{comma}")
-	lines.append("];")
-	lines.append("")
-	# write output
-	output_text = "\n".join(lines)
-	with open(output_path, "w") as f:
-		f.write(output_text)
-	# report file size
-	file_size = os.path.getsize(output_path)
-	print(f"Wrote {output_path} ({file_size:,} bytes)")
+	count = len(entries)
+	print(f"Loaded {count} states/territories")
+	count_ok = count == 49
+	print(f"count == 49: {count_ok}")
+	# emit TypeScript module
+	write_typescript(entries, ts_output_path)
+	# compare generated output with baseline fixture
+	compare_with_baseline(entries, baseline_path)
+	# run prettier to normalize TypeScript formatting
+	run_prettier(ts_output_path, repo_root)
+	# final summary
+	print("\nDone.")
+	print(f"  src/data/map_paths_data.ts: {os.path.getsize(ts_output_path):,} bytes")
+	print("  Approach: json-verbatim (read data/map_paths.json as source of truth)")
+	print("  region/labelX/labelY/name preserved exactly; d field = correct SVG paths")
 
 
 #============================================

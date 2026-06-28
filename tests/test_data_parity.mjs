@@ -33,9 +33,23 @@ function loadBaseline(filename) {
   return JSON.parse(readFileSync(new URL(filename, baselineDir), "utf-8"));
 }
 
-test("NCAA_SCHOOLS matches baseline/schools.json", () => {
+/**
+ * Sort an array of school objects by the `name` field for order-independent
+ * comparison. NCAA_SCHOOLS order is not user-visible and may differ between
+ * generator runs, so we normalize both sides before comparing. If the data
+ * legitimately changes, regenerate baseline/schools.json in the same patch.
+ *
+ * @param {Array<{name: string}>} schools - Array of school objects
+ * @returns {Array<{name: string}>} New array sorted by name ascending
+ */
+function sortByName(schools) {
+  return [...schools].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+test("NCAA_SCHOOLS matches baseline/schools.json (order-independent)", () => {
   const baseline = loadBaseline("schools.json");
-  deepStrictEqual(NCAA_SCHOOLS, baseline);
+  // Sort both sides by name so test does not depend on generator insertion order.
+  deepStrictEqual(sortByName(NCAA_SCHOOLS), sortByName(baseline));
 });
 
 test("DIFFICULTY_TIERS matches baseline/tiers.json", () => {

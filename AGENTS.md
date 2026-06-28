@@ -1,14 +1,26 @@
-## Coding Style
-See Python coding style in docs/PYTHON_STYLE.md.
-See Markdown style in docs/MARKDOWN_STYLE.md.
-See repo style in docs/REPO_STYLE.md.
-When making edits, document them in docs/CHANGELOG.md.
-When in doubt, implement the changes the user asked for rather than waiting for a response; the user is not the best reader and will likely miss your request and then be confused why it was not implemented or fixed.
-When changing code always run focused tests on changed code, documentation does not require tests.
-Agents may find pytest programs to run in the tests folder, including smoke tests and pyflakes runner scripts. These should all be capable of the -k flag, such as pytest test_feature.py -k changed_file.py
+## Style guides
 
-## Python Environment
-AI agents (Codex/Claude) must run Python using `source source_me.sh && python3` (use Python 3.12 only).
-AI agents should execute shell commands with Bash (`bash -lc`) instead of Zsh because `source_me.sh` and this repo's environment assumptions target Bash semantics.
-This is only for AI agents runtime, not a requirement for repo scripts.
-On this user's macOS (Homebrew Python 3.12), Python modules are installed to `/opt/homebrew/lib/python3.12/site-packages/`.
+- docs/REPO_STYLE.md
+- docs/PYTHON_STYLE.md
+- docs/TYPESCRIPT_STYLE.md
+- docs/MARKDOWN_STYLE.md
+- docs/PYTEST_STYLE.md
+- docs/E2E_TESTS.md
+- docs/PLAYWRIGHT_USAGE.md
+- docs/CODE_ARCHITECTURE.md
+- docs/FILE_STRUCTURE.md
+- docs/INSTALL.md
+- docs/USAGE.md
+
+## Workflow
+
+- Document all edits in docs/CHANGELOG.md.
+- When in doubt, implement the changes the user asked for rather than waiting for a response; the user is not the best reader and will likely miss your request and then be confused why it was not implemented or fixed.
+- Run focused tests on changed code; docs changes do not require tests.
+- Tests in tests/ support `-k`: `pytest tests/ -k changed_file.py`.
+
+## Python environment
+
+- Run Python as `source source_me.sh && python3` (Python 3.12 only).
+- Use Bash semantics for agent shell commands, not Zsh; `source_me.sh` targets Bash (agent runtime only, not a repo script requirement).
+- macOS Homebrew Python 3.12 modules: `/opt/homebrew/lib/python3.12/site-packages/`.
