@@ -3,6 +3,7 @@ report_*.txt
 debug_map_*.html
 
 # === UNIVERSAL ===
+output*/
 _temp*.?*
 OTHER_REPOS/
 # === TYPESCRIPT ===
