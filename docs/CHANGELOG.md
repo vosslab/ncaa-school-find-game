@@ -1,3 +1,38 @@
+## 2026-07-02
+
+### Additions and New Features
+
+- Added `devel/clean_build.sh`, the light build cleaner wired to the `npm run clean` target. It
+  wipes build output, tool caches, and test artifacts while keeping `node_modules` (and Rust
+  `target/`) intact, so the next build is ab initio with no reinstall.
+- Updated `devel/dist_clean.sh` (the deep reset) to keep the committed `package-lock.json`, so a
+  distribution-clean checkout still drives a reproducible `npm ci`.
+- Repointed the `clean` npm alias in `package.json` from `./dist_clean.sh` to
+  `./devel/clean_build.sh`.
+
+### Removals and Deprecations
+
+- Removed the root `dist_clean.sh`; both cleaners now live only under `devel/`
+  (`devel/clean_build.sh` light, `devel/dist_clean.sh` deep).
+
+## 2026-07-01
+
+### Fixes and Maintenance
+
+- **Front-door alias alignment**: changed the `test:playwright` npm script from
+  `playwright test` to `./run_playwright_tests.sh`, the canonical Playwright
+  front-door. `playwright.config.ts` is present at the repo root and
+  `run_playwright_tests.sh` runs a preflight config check then `npx playwright
+  test`, so this is behavior-preserving here.
+- **Repo-alignment pass**: added root `dist_clean.sh` (mirrors `sports-life-game`'s
+  LIGHT wipe of `dist _site *.tsbuildinfo .eslintcache`) so the `clean` npm alias
+  points at a real script instead of a missing file; set `chmod +x`. Replaced
+  placeholder `package.json` fields `__REPO_NAME__` / `__REPO_VERSION__` with
+  `ncaa-school-find-game` / `0.0.0`. `./check_codebase.sh` was already green
+  (typecheck, typecheck:lint, lint, format:check, test:node all pass) once
+  `npm install` populated `node_modules/`, so no mechanical lint/format fixes
+  were needed.
+
 ## 2026-06-27
 
 ### Additions and New Features
